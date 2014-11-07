@@ -1,0 +1,11 @@
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+Makefile
+
+*~
+\#*
+*.pdf
+.clang*
+
+chess2-sdl
