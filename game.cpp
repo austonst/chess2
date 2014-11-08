@@ -753,7 +753,6 @@ namespace c2
     SideType sf = p.side();
     SideType se = otherSide(sf);
     std::list<Position> friendPos = b->getPieces(sf);
-    std::list<Position> enemyPos = b->getPieces(se);
     std::vector<Position> enemyKings = b->getKing(se);
     
     //If this is an empowered piece, see what extra move types it has
@@ -937,7 +936,7 @@ namespace c2
                 {
                   for (char j = 1; j < 9; j++)
                     {
-                      if ((*b)(Position(i,j)).type() != PieceType::NONE)
+                      if ((*b)(Position(i,j)).type() == PieceType::NONE)
                         {
                           moves.insert(Position(i,j));
                         }
@@ -1181,6 +1180,7 @@ namespace c2
             Board* bCopy = b->clone();
             bCopy->move(Move(pos, *i, p.type(), p.side()));
             std::vector<Position> friendKings = bCopy->getKing(sf);
+            std::list<Position> enemyPos = bCopy->getPieces(se);
             bool needToInc = true;
             for (auto j = enemyPos.begin(); j != enemyPos.end();)
               {
