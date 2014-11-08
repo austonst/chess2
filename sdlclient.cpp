@@ -275,8 +275,9 @@ int main(int argc, char* argv[])
       //Left click changes the selected piece
       if (lClick)
         {
-          selectedPiece = board(Position(mouseLX+1, 8-mouseLY));
-          if (selectedPiece.type() != PieceType::NONE)
+          Position clickPos(mouseLX+1, 8-mouseLY);
+          selectedPiece = board(clickPos);
+          if (clickPos.isValid() && selectedPiece.type() != PieceType::NONE)
             {
               moves = ng.possibleMoves(selectedPiece.pos());
             }
