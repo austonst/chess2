@@ -790,7 +790,6 @@ namespace c2
         switch (*mt)
           {
           case MoveType::PAWN_CLA:
-          case MoveType::PAWN_NEM:
             {
               //Can't move forward if blocked by either side
               char pawnDir = p.side()==SideType::WHITE?1:-1;
@@ -843,70 +842,69 @@ namespace c2
                       moves.insert(p.pos() + Position(-1,pawnDir));
                     }
                 }
-
-              //Nemesis pawns may also be able to make nemesis moves
-              if (*mt == MoveType::PAWN_NEM)
-                {
-                  for (size_t j = 0; j < enemyKings.size(); j++)
-                    {
-                      //Let's just cycle over all eight options
-                      //It's long, I know. I'll fix it some other time
-                      bool right = enemyKings[j].x() > p.pos().x();
-                      bool left = enemyKings[j].x() < p.pos().x();
-                      bool up = enemyKings[j].y() > p.pos().y();
-                      bool down = enemyKings[j].y() < p.pos().y();
-                      if (right &&
-                          (*b)(p.pos() + Position(1,0)).type() == PieceType::NONE &&
-                          (p.pos() + Position(1,0)).isValid())
-                        {
-                          moves.insert(p.pos() + Position(1,0));
-                        }
-                      if (right && up &&
-                          (*b)(p.pos() + Position(1,1)).type() == PieceType::NONE &&
-                          (p.pos() + Position(1,1)).isValid())
-                        {
-                          moves.insert(p.pos() + Position(1,1));
-                        }
-                      if (up &&
-                          (*b)(p.pos() + Position(0,1)).type() == PieceType::NONE &&
-                          (p.pos() + Position(0,1)).isValid())
-                        {
-                          moves.insert(p.pos() + Position(0,1));
-                        }
-                      if (left && up &&
-                          (*b)(p.pos() + Position(-1,1)).type() == PieceType::NONE &&
-                          (p.pos() + Position(-1,1)).isValid())
-                        {
-                          moves.insert(p.pos() + Position(-1,1));
-                        }
-                      if (left &&
-                          (*b)(p.pos() + Position(-1,0)).type() == PieceType::NONE &&
-                          (p.pos() + Position(-1,0)).isValid())
-                        {
-                          moves.insert(p.pos() + Position(-1,0));
-                        }
-                      if (left && down &&
-                          (*b)(p.pos() + Position(-1,-1)).type() == PieceType::NONE &&
-                          (p.pos() + Position(-1,-1)).isValid())
-                        {
-                          moves.insert(p.pos() + Position(-1,-1));
-                        }
-                      if (down &&
-                          (*b)(p.pos() + Position(0,-1)).type() == PieceType::NONE &&
-                          (p.pos() + Position(0,-1)).isValid())
-                        {
-                          moves.insert(p.pos() + Position(0,-1));
-                        }
-                      if (right && down &&
-                          (*b)(p.pos() + Position(1,-1)).type() == PieceType::NONE &&
-                          (p.pos() + Position(1,-1)).isValid())
-                        {
-                          moves.insert(p.pos() + Position(1,-1));
-                        }
-                    }
-                }
               break;
             }
+
+          case MoveType::PAWN_NEM:
+            //Nemesis pawns may be able to make nemesis moves
+            for (size_t j = 0; j < enemyKings.size(); j++)
+              {
+                //Let's just cycle over all eight options
+                //It's long, I know. I'll fix it some other time
+                bool right = enemyKings[j].x() > p.pos().x();
+                bool left = enemyKings[j].x() < p.pos().x();
+                bool up = enemyKings[j].y() > p.pos().y();
+                bool down = enemyKings[j].y() < p.pos().y();
+                if (right &&
+                    (*b)(p.pos() + Position(1,0)).type() == PieceType::NONE &&
+                    (p.pos() + Position(1,0)).isValid())
+                  {
+                    moves.insert(p.pos() + Position(1,0));
+                  }
+                if (right && up &&
+                    (*b)(p.pos() + Position(1,1)).type() == PieceType::NONE &&
+                    (p.pos() + Position(1,1)).isValid())
+                  {
+                    moves.insert(p.pos() + Position(1,1));
+                  }
+                if (up &&
+                    (*b)(p.pos() + Position(0,1)).type() == PieceType::NONE &&
+                    (p.pos() + Position(0,1)).isValid())
+                  {
+                    moves.insert(p.pos() + Position(0,1));
+                  }
+                if (left && up &&
+                    (*b)(p.pos() + Position(-1,1)).type() == PieceType::NONE &&
+                    (p.pos() + Position(-1,1)).isValid())
+                  {
+                    moves.insert(p.pos() + Position(-1,1));
+                  }
+                if (left &&
+                    (*b)(p.pos() + Position(-1,0)).type() == PieceType::NONE &&
+                    (p.pos() + Position(-1,0)).isValid())
+                  {
+                    moves.insert(p.pos() + Position(-1,0));
+                  }
+                if (left && down &&
+                    (*b)(p.pos() + Position(-1,-1)).type() == PieceType::NONE &&
+                    (p.pos() + Position(-1,-1)).isValid())
+                  {
+                    moves.insert(p.pos() + Position(-1,-1));
+                  }
+                if (down &&
+                    (*b)(p.pos() + Position(0,-1)).type() == PieceType::NONE &&
+                    (p.pos() + Position(0,-1)).isValid())
+                  {
+                    moves.insert(p.pos() + Position(0,-1));
+                  }
+                if (right && down &&
+                    (*b)(p.pos() + Position(1,-1)).type() == PieceType::NONE &&
+                    (p.pos() + Position(1,-1)).isValid())
+                  {
+                    moves.insert(p.pos() + Position(1,-1));
+                  }
+              }
+            break;
             
           case MoveType::ROOK_CLA:
             for (Position dir :
@@ -1078,75 +1076,73 @@ namespace c2
               break;
             }
 
-          case MoveType::KING_ANY:
-          case MoveType::KING_CLA:
           case MoveType::KING_2KG:
             {
-              //If it's 2kings, see if they're next to each other and can't ww
-              bool whirlwind = false;
-              if (*mt == MoveType::KING_2KG)
-                {
-                  whirlwind = true;
-                  for (int i = -1; i < 2; i++)
-                    {
-                      for (int j = -1; j < 2; j++)
-                        {
-                          if (i != 0 && j != 0)
-                            {
-                              Position spot(pos.x() + i, pos.y() + j);
-                              if ((*b)(spot).type() == PieceType::TKG_WARRKING)
-                                {
-                                  whirlwind = false;
-                                }
-                            }
-                        }
-                    }
-                }
+              //See if they're next to each other and can't whirlwind
+              bool whirlwind = true;
               for (int i = -1; i < 2; i++)
                 {
                   for (int j = -1; j < 2; j++)
                     {
-                      Position spot(pos.x() + i, pos.y() + j);
-                      if (i == 0 && j == 0 && !whirlwind)
+                      if (i != 0 && j != 0)
                         {
-                          continue;
-                        }
-                      if (spot.isValid() && (*b)(spot).side() != sf)
-                        {
-                          moves.insert(spot);
+                          Position spot(pos.x() + i, pos.y() + j);
+                          if ((*b)(spot).type() == PieceType::TKG_WARRKING)
+                            {
+                              whirlwind = false;
+                            }
                         }
                     }
                 }
-              //We can't use canCastle here because may be using different Board
-              if ((*b)(pos).type() == PieceType::CLA_KING)
+              if (whirlwind)
                 {
-                  if (sf == SideType::WHITE && _whiteKingCastle &&
-                      (*b)(Position(7,1)).side() == SideType::NONE &&
-                      (*b)(Position(6,1)).side() == SideType::NONE)
-                    {
-                      moves.insert(Position(7,1));
-                    }
-                  if (sf == SideType::WHITE && _whiteQueenCastle &&
-                      (*b)(Position(2,1)).side() == SideType::NONE &&
-                      (*b)(Position(3,1)).side() == SideType::NONE)
-                    {
-                      moves.insert(Position(2,1));
-                    }
-                  if (sf == SideType::BLACK && _blackKingCastle &&
-                      (*b)(Position(7,8)).side() == SideType::NONE &&
-                      (*b)(Position(6,8)).side() == SideType::NONE)
-                    {
-                      moves.insert(Position(7,8));
-                    }
-                  if (sf == SideType::WHITE && _blackQueenCastle &&
-                      (*b)(Position(2,8)).side() == SideType::NONE &&
-                      (*b)(Position(3,8)).side() == SideType::NONE)
-                    {
-                      moves.insert(Position(2,8));
-                    }
+                  moves.insert(pos);
                 }
               break;
             }
+
+          case MoveType::KING_ANY:
+            for (int i = -1; i < 2; i++)
+              {
+                for (int j = -1; j < 2; j++)
+                  {
+                    Position spot(pos.x() + i, pos.y() + j);
+                    if (spot != pos && spot.isValid() &&
+                        (*b)(spot).side() != sf)
+                      {
+                        moves.insert(spot);
+                      }
+                  }
+              }
+            break;
+
+          case MoveType::KING_CLA:
+            //We can't use canCastle here because may be using different Board
+            if (sf == SideType::WHITE && _whiteKingCastle &&
+                (*b)(Position(7,1)).side() == SideType::NONE &&
+                (*b)(Position(6,1)).side() == SideType::NONE)
+              {
+                moves.insert(Position(7,1));
+              }
+            if (sf == SideType::WHITE && _whiteQueenCastle &&
+                (*b)(Position(2,1)).side() == SideType::NONE &&
+                (*b)(Position(3,1)).side() == SideType::NONE)
+              {
+                moves.insert(Position(2,1));
+              }
+            if (sf == SideType::BLACK && _blackKingCastle &&
+                (*b)(Position(7,8)).side() == SideType::NONE &&
+                (*b)(Position(6,8)).side() == SideType::NONE)
+              {
+                moves.insert(Position(7,8));
+              }
+            if (sf == SideType::WHITE && _blackQueenCastle &&
+                (*b)(Position(2,8)).side() == SideType::NONE &&
+                (*b)(Position(3,8)).side() == SideType::NONE)
+              {
+                moves.insert(Position(2,8));
+              }
+            break;
             
           default: break;
           }
