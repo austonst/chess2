@@ -112,9 +112,13 @@ namespace c2
           {
             return PieceType::TKG_WARRKING;
           }
-        else
+        else if (army == ArmyType::CLASSIC)
           {
             return PieceType::CLA_KING;
+          }
+        else
+          {
+            return PieceType::ANY_KING;
           }
       }
     else //Not a CLA piece?
