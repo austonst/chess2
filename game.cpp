@@ -227,6 +227,7 @@ namespace c2
           {
             for (char j = -1; j < 2; j++)
               {
+                if (i == 0 && j == 0) continue;
                 Piece dest = (*_board)(Position(m.end.x()+i,m.end.y()+j));
                 if (dest.type() == PieceType::CLA_PAWN ||
                     dest.type() == PieceType::NEM_PAWN)
@@ -516,7 +517,7 @@ namespace c2
       }
     else if (_state == GameStateType::BLACK_MOVE)
       {
-        if (hasKingTurn(_whiteArmy))
+        if (hasKingTurn(_blackArmy))
           {
             _state = GameStateType::BLACK_KINGMOVE;
             _isKingTurn = true;
@@ -1084,7 +1085,7 @@ namespace c2
                 {
                   for (int j = -1; j < 2; j++)
                     {
-                      if (i != 0 && j != 0)
+                      if (i != 0 || j != 0)
                         {
                           Position spot(pos.x() + i, pos.y() + j);
                           if ((*b)(spot).type() == PieceType::TKG_WARRKING)

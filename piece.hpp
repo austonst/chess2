@@ -116,7 +116,7 @@ namespace c2
       {MoveType::KING_ANY},                       //EMP_QUEEN
       {MoveType::QUEEN_RPR},                      //RPR_REAPER
       {MoveType::ROOK_GHOST},                     //RPR_GHOST
-      {MoveType::KING_2KG},                       //2KG_WARRKING
+      {MoveType::KING_2KG, MoveType::KING_ANY},   //2KG_WARRKING
       {MoveType::KNIGHT_WILDHORSE},               //ANI_WILDHORSE
       {MoveType::BISHOP_TIGER},                   //ANI_TIGER
       {MoveType::ROOK_ELEPHANT},                  //ANI_ELEPHANT
