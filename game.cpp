@@ -970,9 +970,11 @@ namespace c2
                 {Position(-2,-1), Position(-2,1), Position(-1,2), Position(-1,-2),
                     Position(1,-2), Position(1,2), Position(2,-1), Position(2,1)})
                 {
+                  //Wild horses can capture friends, but not friend kings
                   if ((p.pos()+offset).isValid() &&
                       ((*b)(p.pos()+offset).side() != sf ||
-                       (*mt) == MoveType::KNIGHT_WILDHORSE))
+                       ((*mt) == MoveType::KNIGHT_WILDHORSE &&
+                        (*b)(p.pos()+offset).type() != PieceType::ANY_KING)))
                     {
                       moves.insert(p.pos() + offset);
                     }
