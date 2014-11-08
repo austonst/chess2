@@ -1192,8 +1192,8 @@ namespace c2
                         j = enemyPos.end();
                         break;
                       }
-                    j++;
                   }
+                j++;
               }
             if (needToInc) ++i;
             delete bCopy;
