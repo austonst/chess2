@@ -68,23 +68,33 @@ int dialogBox(const std::string& text, const std::vector<std::string>& button,
 
 int main(int argc, char* argv[])
 {
-  if (argc != 5)
+  std::string arg_whiteArmy, arg_blackArmy, arg_localSide, arg_ip;
+  if (argc == 5)
     {
-	  std::cout << argv[1] << std::endl;
-      std::cerr << "Usage: " << argv[0] << " whiteArmy blackArmy localSide ip\n" <<
-        "Select armies by their first lowercase letter (2 for 2 kings)\n" <<
-        "localSide should be \"white\", \"black\", or \"both\"\n" <<
-        "The host should put \"host\" as their ip.\n" <<
-        "Non-networked players should put \"no\" in for ip\n";
-      return 1;
+      arg_whiteArmy = argv[1];
+      arg_blackArmy = argv[2];
+      arg_localSide = argv[3];
+      arg_ip = argv[4];
     }
-  bool whiteControl = std::string(argv[3]) == "white" ||
-    std::string(argv[3]) == "both";
-  bool blackControl = std::string(argv[3]) == "black" ||
-    std::string(argv[3]) == "both";
+  else
+    {
+      std::cout << "Enter first character of name of white army (2 for two kings): ";
+      std::cin >> arg_whiteArmy;
+      std::cout << "Enter first character of name of black army (2 for two kings): ";
+      std::cin >> arg_blackArmy;
+      std::cout << "Enter which armies you control locally (white, black, or both: ";
+      std::cin >> arg_localSide;
+      std::cout << "Enter \"host\" if hosting, host's ip address if connecting, or"
+                << "\"no\" for non-networked play: ";
+      std::cin >> arg_ip;
+    }
+  bool whiteControl = std::string(arg_localSide) == "white" ||
+    std::string(arg_localSide) == "both";
+  bool blackControl = std::string(arg_localSide) == "black" ||
+    std::string(arg_localSide) == "both";
   if (!whiteControl && !blackControl)
     {
-      std::cerr << "You must put \"white\", \"black\", or \"both\" for the third arg!\n";
+      std::cerr << "You must put \"white\", \"black\", or \"both\" for localcontrol!\n";
       return 1;
     }
 
@@ -121,80 +131,80 @@ int main(int argc, char* argv[])
   std::string ip;
   BitBoard board;
   NetGame ng(&board);
-  if (std::string(argv[4]) == "host")
+  if (std::string(arg_ip) == "host")
     {
       std::cout << "Listening for connections..." << std::endl;
       ng.listenStart();
     }
-  else if (std::string(argv[4]) == "no")
+  else if (std::string(arg_ip) == "no")
     {
       //Do nothing!
     }
   else
     {
-      std::cout << "Connecting to " << argv[1] << std::endl;
-      ip = argv[1];
+      std::cout << "Connecting to " << arg_whiteArmy << std::endl;
+      ip = arg_whiteArmy;
       ng.connectStart(ip);
     }
 
   //Set up armies
-  if (std::string(argv[1]) == "c")
+  if (std::string(arg_whiteArmy) == "c")
     {
       ng.setArmy(SideType::WHITE, ArmyType::CLASSIC);
     }
-  else if (std::string(argv[1]) == "e")
+  else if (std::string(arg_whiteArmy) == "e")
     {
       ng.setArmy(SideType::WHITE, ArmyType::EMPOWERED);
     }
-  else if (std::string(argv[1]) == "n")
+  else if (std::string(arg_whiteArmy) == "n")
     {
       ng.setArmy(SideType::WHITE, ArmyType::NEMESIS);
     }
-  else if (std::string(argv[1]) == "r")
+  else if (std::string(arg_whiteArmy) == "r")
     {
       ng.setArmy(SideType::WHITE, ArmyType::REAPER);
     }
-  else if (std::string(argv[1]) == "2")
+  else if (std::string(arg_whiteArmy) == "2")
     {
       ng.setArmy(SideType::WHITE, ArmyType::TWOKINGS);
     }
-  else if (std::string(argv[1]) == "a")
+  else if (std::string(arg_whiteArmy) == "a")
     {
       ng.setArmy(SideType::WHITE, ArmyType::ANIMALS);
     }
   else
     {
-      std::cerr << "The army for white must be given as one of 'cenr2a', you put: " << argv[1] << std::endl;
+      std::cerr << "The army for white must be given as one of 'cenr2a', you put: " << arg_whiteArmy << std::endl;
       return 1;
     }
   
-  if (std::string(argv[2]) == "c")
+  if (std::string(arg_blackArmy) == "c")
     {
       ng.setArmy(SideType::BLACK, ArmyType::CLASSIC);
     }
-  else if (std::string(argv[2]) == "e")
+  else if (std::string(arg_blackArmy) == "e")
     {
       ng.setArmy(SideType::BLACK, ArmyType::EMPOWERED);
     }
-  else if (std::string(argv[2]) == "n")
+  else if (std::string(arg_blackArmy) == "n")
     {
       ng.setArmy(SideType::BLACK, ArmyType::NEMESIS);
     }
-  else if (std::string(argv[2]) == "r")
+  else if (std::string(arg_blackArmy) == "r")
     {
       ng.setArmy(SideType::BLACK, ArmyType::REAPER);
     }
-  else if (std::string(argv[2]) == "2")
+  else if (std::string(arg_blackArmy) == "2")
     {
       ng.setArmy(SideType::BLACK, ArmyType::TWOKINGS);
     }
-  else if (std::string(argv[2]) == "a")
+  else if (std::string(arg_blackArmy) == "a")
     {
       ng.setArmy(SideType::BLACK, ArmyType::ANIMALS);
     }
   else
     {
-      std::cerr << "The army for black must be given as one character in 'cenr2a', you put: " << argv[2] << std::endl;
+      std::cerr << "The army for black must be given as one character in 'cenr2a', you put: " << arg_blackArmy << std::endl;
       return 1;
     }
 
