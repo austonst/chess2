@@ -1195,7 +1195,7 @@ namespace c2
                         break;
                       }
                   }
-                j++;
+                if (needToInc) j++;
               }
             if (needToInc) ++i;
             delete bCopy;
