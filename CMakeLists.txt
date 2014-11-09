@@ -47,11 +47,15 @@ set(SRCS
   )
 
 # Specify output, includes, and links
-add_executable(chess2-sdl ${HDRS} ${SRCS})
 include_directories(
   ${SDL2_INCLUDE_DIRS}
   ${SDL2IMAGE_INCLUDE_DIRS}
   )
+link_directories(
+  ${SDL2_LIBRARY_DIRS}
+  ${SDL2IMAGE_LIBRARY_DIRS}
+  )
+add_executable(chess2-sdl ${HDRS} ${SRCS})
 target_link_libraries(chess2-sdl
   ${SDL2_LIBRARIES}
   ${SDL2IMAGE_LIBRARIES}
