@@ -9,11 +9,12 @@
   A client for Sirlin's Chess 2 using SDL.
 */
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #include <iostream>
 #include "netgame.hpp"
 #include "bitboard.hpp"
+#include <sstream>
 
 using namespace c2;
 
@@ -69,6 +70,7 @@ int main(int argc, char* argv[])
 {
   if (argc != 5)
     {
+	  std::cout << argv[1] << std::endl;
       std::cerr << "Usage: " << argv[0] << " whiteArmy blackArmy localSide ip\n" <<
         "Select armies by their first lowercase letter (2 for 2 kings)\n" <<
         "localSide should be \"white\", \"black\", or \"both\"\n" <<
@@ -324,12 +326,14 @@ int main(int argc, char* argv[])
           std::vector<std::string> choices;
           for (std::uint8_t i = 0; i < ng.stones(SideType::WHITE)+1 && i < 3; i++)
             {
-              choices.push_back(std::to_string(i));
+			  std::stringstream ss;
+			  ss << char(i);
+              choices.push_back(ss.str());
             }
-          std::string text = "Select number of stones for white to bid (has ";
-          text += std::to_string(ng.stones(SideType::WHITE));
-          text += ").";
-          int stones = dialogBox(text, choices, screen);
+		  std::stringstream ss;
+		  ss << "Select number of stones for white to bid (has " <<
+		    char(ng.stones(SideType::WHITE)) << ").";
+          int stones = dialogBox(ss.str(), choices, screen);
           ng.bid(SideType::WHITE, stones-1);
           
         }
@@ -339,12 +343,14 @@ int main(int argc, char* argv[])
           std::vector<std::string> choices;
           for (std::uint8_t i = 0; i < ng.stones(SideType::BLACK)+1 && i < 3; i++)
             {
-              choices.push_back(std::to_string(i));
+			  std::stringstream ss;
+			  ss << char(i);
+              choices.push_back(ss.str());
             }
-          std::string text = "Select number of stones for black to bid (has ";
-          text += std::to_string(ng.stones(SideType::BLACK));
-          text += ").";
-          int stones = dialogBox(text, choices, screen);
+		  std::stringstream ss;
+		  ss << "Select number of stones for black to bid (has " <<
+		    char(ng.stones(SideType::BLACK)) << ").";
+          int stones = dialogBox(ss.str(), choices, screen);
           ng.bid(SideType::BLACK, stones-1);
         }
 
