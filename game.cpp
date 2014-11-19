@@ -20,7 +20,7 @@ namespace c2
 
   //Immediately sets up a game
   Game::Game(Board* b, ArmyType white, ArmyType black) :
-    _board(b), _whiteArmy(white), _blackArmy(black)
+    _board(b), _whiteArmy(white), _blackArmy(black), _dummy(false)
   {
     //Check which inputs are properly set
     //Choose the corresponding game state
@@ -29,7 +29,7 @@ namespace c2
 
   //Sets up the board but requires armies to be set later
   Game::Game(Board* b) : _board(b), _whiteArmy(ArmyType::NONE),
-                         _blackArmy(ArmyType::NONE)
+                         _blackArmy(ArmyType::NONE), _dummy(false)
   {
     if (b)
       {
@@ -44,7 +44,7 @@ namespace c2
   //Sets up a game, but requires a Board to be passed in later
   Game::Game() :
     _board(nullptr), _whiteArmy(ArmyType::NONE), _blackArmy(ArmyType::NONE),
-    _state(GameStateType::SET_BOARD) {}
+    _state(GameStateType::SET_BOARD), _dummy(false) {}
 
   void Game::setPreGameState()
   {
@@ -219,7 +219,6 @@ namespace c2
     _board->move(m);
     _moves.push_back(m);
 
-    //We DON'T need to check for check, since they won't show as valid moves
     //If this is a warrior king "moving" to the same spot, it's a whirlwind
     if (m.type == PieceType::TKG_WARRKING && m.start == m.end)
       {
@@ -237,6 +236,7 @@ namespace c2
                 _board->destroy(dest.pos());
               }
           }
+        //The king did not capture itself
         _justTaken = Piece();
       }
 
@@ -476,26 +476,39 @@ namespace c2
       }
 
     //Check for checkmate
-    //Offload the tricky checking stuff to Board's possibleMoves.
     //If the opponent has no possible moves, that's mate.
-    std::list<Position> enemyPos = _board->getPieces(otherSide(m.side));
-    bool checkmate = true;
-    for (auto i = enemyPos.begin(); i != enemyPos.end(); i++)
+    //In some odd situations, the person who just moved could have put himself
+    //in check. In this case, the opponent immediately wins.
+    //If any enemy piece can move to friendly king, that's mate
+    if (!_dummy)
       {
-        if (possibleMoves(*i).size() != 0)
+        std::list<Position> enemyPos = _board->getPieces(otherSide(m.side));
+        std::vector<Position> friendKing = _board->getKing(m.side);
+        SideType winner = m.side;
+        for (auto i = enemyPos.begin(); i != enemyPos.end(); i++)
           {
-            checkmate = false;
-            break;
+            //If the opponent's piece can move, the opponent is not mated
+            std::set<Position> poss = possibleMoves(*i);
+            if (poss.size() != 0)
+              {
+                //If that piece can move to the mover's king, mover is mated
+                for (auto j = friendKing.begin(); j != friendKing.end(); j++)
+                  {
+                    if (poss.find(*j) != poss.end())
+                      {
+                        winner = otherSide(m.side);
+                      }
+                  }
+                if (winner == m.side) winner = SideType::NONE;
+              }
           }
-      }
-    if (checkmate)
-      {
-        if (m.side == SideType::WHITE)
+        
+        if (winner == SideType::WHITE)
           {
             _state = GameStateType::WHITE_WIN_CHECKMATE;
             return;
           }
-        else
+        else if (winner == SideType::BLACK)
           {
             _state = GameStateType::BLACK_WIN_CHECKMATE;
             return;
@@ -744,12 +757,10 @@ namespace c2
   }
   
   //This'll be a fun one...
-  std::set<Position> Game::possibleMoves(Position pos, bool ignoreCheck, Board* b)
+  std::set<Position> Game::possibleMoves(Position pos)
   {
-    //If the passed b pointer is null, use the board we have stored inclass
-    if (!b) b = _board;
-    
     //Get a bunch of data one time so it can just be reused
+    Board* b = _board;
     Piece p = (*b)(pos);
     SideType sf = p.side();
     SideType se = otherSide(sf);
@@ -1170,20 +1181,46 @@ namespace c2
       }
 
     //The remaining moves are all good unless the king would be checked after
-    //Make _board copy, make move on copy, call possibleMoves for enemy to see
+    //Make game copy, make move on copy, call possibleMoves for enemy to see
     // if checked, if so, can't make that move
-    if (!ignoreCheck)
+    if (!_dummy)
       {
         for (auto i = moves.begin(); i != moves.end();)
           {
-            Board* bCopy = b->clone();
-            bCopy->move(Move(pos, *i, p.type(), p.side()));
-            std::vector<Position> friendKings = bCopy->getKing(sf);
-            std::list<Position> enemyPos = bCopy->getPieces(se);
+            //Make the move
+            Game gCopy = *this;
+            gCopy._board = b->clone();
+            gCopy._dummy = true;
+            if (p.side() == SideType::WHITE)
+              {
+                gCopy._state = GameStateType::WHITE_MOVE;
+              }
+            else
+              {
+                gCopy._state = GameStateType::BLACK_MOVE;
+              }
+            gCopy.move(Move(pos, *i, p.type(), p.side()));
+
+            //Special cases requiring manual progress through endTurnThings:
+            //A pinned tiger taking a piece needs to resolve the duel to get back
+            if (p.type() == PieceType::ANI_TIGER &&
+                (gCopy.state() == GameStateType::BLACK_DUEL ||
+                 gCopy.state() == GameStateType::WHITE_DUEL))
+              {
+                gCopy.startDuel(true);
+                
+                //The attacker can make the move even if he could or will lose
+                //the duel, so assume attacker win
+                gCopy.bid(se, 0);
+                gCopy.bid(sf, 0);
+              }
+            
+            std::vector<Position> friendKings = gCopy._board->getKing(sf);
+            std::list<Position> enemyPos = gCopy._board->getPieces(se);
             bool needToInc = true;
             for (auto j = enemyPos.begin(); j != enemyPos.end();)
               {
-                std::set<Position> enemyMoves = possibleMoves(*j, true, bCopy);
+                std::set<Position> enemyMoves = gCopy.possibleMoves(*j);
                 for (size_t k = 0; k < friendKings.size(); k++)
                   {
                     //If the enemy piece can move to the king, it's check
@@ -1198,7 +1235,7 @@ namespace c2
                 if (needToInc) j++;
               }
             if (needToInc) ++i;
-            delete bCopy;
+            delete gCopy._board;
           }
       }
 

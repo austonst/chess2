@@ -98,8 +98,7 @@ namespace c2
 
     //Other helpful functions
     //Provides the set of possible positions a piece can move to
-    std::set<Position> possibleMoves(Position pos, bool ignoreCheck = false,
-                                     Board* b = nullptr);
+    std::set<Position> possibleMoves(Position pos);
 
     //Accessors
     GameStateType state() const {return _state;}
@@ -157,7 +156,10 @@ namespace c2
 
     //The current game state
     GameStateType _state;
-    
+
+    //If this is set, this is a dummy game set up for possibleMoves
+    //and no further recursion should be made.
+    bool _dummy;
   };
 
 } //Namespace
