@@ -268,7 +268,7 @@ namespace c2
     bool midlineWin = true;
     for (size_t i = 0; i < kings.size(); i++)
       {
-        if ((m.side == SideType::WHITE && kings[i].y() < 4) ||
+        if ((m.side == SideType::WHITE && kings[i].y() < 5) ||
             (m.side == SideType::BLACK && kings[i].y() > 4))
           {
             midlineWin = false;
