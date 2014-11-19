@@ -834,6 +834,7 @@ namespace c2
               Move lastMove;
               if (_moves.size() > 0) lastMove = _moves[_moves.size()-1];
               bool maybeEP = lastMove.type == PieceType::CLA_PAWN &&
+                lastMove.side == se &&
                 std::abs(lastMove.start.y()-lastMove.end.y()) == 2 &&
                 std::abs(p.pos().y()+pawnDir - lastMove.start.y()) == 1 &&
                 std::abs(p.pos().y()+pawnDir - lastMove.end.y()) == 1;
