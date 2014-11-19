@@ -82,9 +82,9 @@ int main(int argc, char* argv[])
       std::cin >> arg_whiteArmy;
       std::cout << "Enter first character of name of black army (2 for two kings): ";
       std::cin >> arg_blackArmy;
-      std::cout << "Enter which armies you control locally (white, black, or both: ";
+      std::cout << "Enter which armies you control locally (white, black, or both): ";
       std::cin >> arg_localSide;
-      std::cout << "Enter \"host\" if hosting, host's ip address if connecting, or"
+      std::cout << "Enter \"host\" if hosting, host's ip address if connecting, or\n"
                 << "\"no\" for non-networked play: ";
       std::cin >> arg_ip;
     }
@@ -99,7 +99,11 @@ int main(int argc, char* argv[])
     }
 
       //Initialize all SDL subsystems
-  if (SDL_Init(SDL_INIT_EVERYTHING) < 0) return 1;
+  if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+	  std::cerr << "SDL_Init failed: " << SDL_GetError() << "\n";
+	  return 1;
+	}
 
   //Set up the screen
   SDL_Window* screen = SDL_CreateWindow("SDL Chess 2", SDL_WINDOWPOS_UNDEFINED,
