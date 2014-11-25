@@ -1221,6 +1221,20 @@ namespace c2
           }
       }
 
+    //Elephants cannot be captured from more than 2 squares away
+    for (auto i = moves.begin(); i != moves.end();)
+      {
+        if ((*b)(*i).type() == PieceType::ANI_ELEPHANT &&
+            (std::abs((pos-*i).x()) > 2 || std::abs((pos-*i).y()) > 2))
+          {
+            moves.erase(i++);
+          }
+        else
+          {
+            ++i;
+          }
+      }
+
     //The remaining moves are all good unless the king would be checked after
     //Make game copy, make move on copy, call possibleMoves for enemy to see
     // if checked, if so, can't make that move
