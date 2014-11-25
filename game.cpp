@@ -443,13 +443,6 @@ namespace c2
                     newPos = Position(currentPos.x(), currentPos.y()-1);
                   }
 
-                //Don't move if this would go off the board or hit a ghost
-                if (!(newPos.isValid()) ||
-                    (*_board)(newPos).type() == PieceType::RPR_GHOST)
-                  {
-                    break;
-                  }
-
                 //Make the move
                 _board->move(Move(currentPos, newPos, m.type, m.side));
                 currentPos = newPos;
@@ -965,9 +958,39 @@ namespace c2
                   for (char i = 0; i < 3 && (step+=dir).isValid(); i++)
                     {
                       moves.insert(step);
-                      //If there's any piece, stop after adding this spot
-                      if ((*b)(step).type() != PieceType::NONE)
+                      //If there's any piece, taking it would cause a rampage
+                      Piece cap = (*b)(step);
+                      if (cap.type() != PieceType::NONE)
                         {
+                          //Check this spot and all rampaged spots for validity
+                          Position rampageStep = step;
+                          while (i < 3)
+                            {
+                              //Cannot capture nemesis, ghost, or friendly king
+                              if ((cap.type() == PieceType::CLA_KING ||
+                                   cap.type() == PieceType::ANY_KING ||
+                                   cap.type() == PieceType::TKG_WARRKING ||
+                                   cap.type() == PieceType::NEM_QUEEN ||
+                                   cap.type() == PieceType::RPR_GHOST) &&
+                                  cap.side() == sf)
+                                {
+                                  moves.erase(step);
+                                  break;
+                                }
+
+                              //Cannot go off the board
+                              if (!rampageStep.isValid())
+                                {
+                                  moves.erase(step);
+                                  break;
+                                }
+
+                              //Advance position
+                              i++;
+                              rampageStep += dir;
+                              cap = (*b)(rampageStep);
+                            }
+
                           break;
                         }
                     }
