@@ -444,9 +444,26 @@ namespace c2
                   }
 
                 //Make the move
+                PieceType cap = (*_board)(newPos).type();
                 _board->move(Move(currentPos, newPos, m.type, m.side));
                 currentPos = newPos;
                 distance++;
+
+                //If we capture an enemy king in the process (possible in rare
+                //situations), we win!
+                if (cap == PieceType::CLA_KING || cap == PieceType::ANY_KING ||
+                    cap == PieceType::TKG_WARRKING)
+                  {
+                    if (m.side == SideType::WHITE)
+                      {
+                        _state = GameStateType::WHITE_WIN_CHECKMATE;
+                      }
+                    else
+                      {
+                        _state = GameStateType::BLACK_WIN_CHECKMATE;
+                      }
+                    return;
+                  }
               }
           }
       }
