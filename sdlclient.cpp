@@ -341,12 +341,12 @@ int main(int argc, char* argv[])
           for (std::uint8_t i = 0; i < ng.stones(SideType::WHITE)+1 && i < 3; i++)
             {
 			  std::stringstream ss;
-			  ss << char(i);
+			  ss << int(i);
               choices.push_back(ss.str());
             }
 		  std::stringstream ss;
 		  ss << "Select number of stones for white to bid (has " <<
-		    char(ng.stones(SideType::WHITE)) << ").";
+		    int(ng.stones(SideType::WHITE)) << ").";
           int stones = dialogBox(ss.str(), choices, screen);
           ng.bid(SideType::WHITE, stones-1);
           
@@ -358,12 +358,12 @@ int main(int argc, char* argv[])
           for (std::uint8_t i = 0; i < ng.stones(SideType::BLACK)+1 && i < 3; i++)
             {
 			  std::stringstream ss;
-			  ss << char(i);
+			  ss << int(i);
               choices.push_back(ss.str());
             }
 		  std::stringstream ss;
 		  ss << "Select number of stones for black to bid (has " <<
-		    char(ng.stones(SideType::BLACK)) << ").";
+		    int(ng.stones(SideType::BLACK)) << ").";
           int stones = dialogBox(ss.str(), choices, screen);
           ng.bid(SideType::BLACK, stones-1);
         }
