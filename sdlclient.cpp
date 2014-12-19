@@ -146,8 +146,8 @@ int main(int argc, char* argv[])
     }
   else
     {
-      std::cout << "Connecting to " << arg_whiteArmy << std::endl;
-      ip = arg_whiteArmy;
+      std::cout << "Connecting to " << arg_ip << std::endl;
+      ip = arg_ip;
       ng.connectStart(ip);
     }
 
