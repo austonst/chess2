@@ -226,8 +226,9 @@ namespace c2
           {
             for (char j = -1; j < 2; j++)
               {
-                if (i == 0 && j == 0) continue;
-                Piece dest = (*_board)(Position(m.end.x()+i,m.end.y()+j));
+                Position destpos(m.end.x()+i,m.end.y()+j);
+                if ((i == 0 && j == 0) || !destpos.isValid()) continue;
+                Piece dest = (*_board)(destpos);
                 if (dest.type() == PieceType::CLA_PAWN ||
                     dest.type() == PieceType::NEM_PAWN)
                   {
