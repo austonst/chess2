@@ -11,10 +11,9 @@
 
   It is assmed that a Board* will be set before connecting, so setBoard is local
   Messages start with one byte, 0xCE (it's the hex values in the word chess)
-  Bytes 2-3 contain the number of functions excluding this one, big-endian
-  The fourth byte represents the function applied or type of status message
+  The second byte represents the function applied or type of status message
   0 = setArmy, 1 = start, 2 = move, 3 = startDuel, 4 = bid, 5 = promote
-  6 = state, 7 = ack 8 = version <-- Do not advance transition count
+  6 = state, 7 = version
 
   Followed by:
   setArmy 2B   - 1B side, 1B army
@@ -24,7 +23,6 @@
   bid 2B       - 1B side, 1B stones
   promote 1B   - 1B type
   state 1B     - 1B state
-  ack 1B       - 1B messagetype
   version 2B   - 2B version big-endian
 */
 
@@ -41,26 +39,30 @@ namespace c2
 {
 
   typedef std::vector<std::uint8_t> Message;
-  const std::uint16_t DEFAULT_PORT = 38519;
+  const std::string DEFAULT_PORT = "38519";
   const std::uint8_t MAGIC_NUM = 0xCE;
-  const std::uint16_t NET_VERSION = 0;
+  const std::uint16_t NET_VERSION = 1;
+  const std::size_t HEADER_SIZE = 2;
   
   class NetGame
   {
   public:
     //Constructors
     NetGame(Board* b = nullptr, std::string ip = std::string(),
-            std::uint16_t port = DEFAULT_PORT);
+            std::string port = DEFAULT_PORT);
 
     //Network functions
     //Connects to the specified address and starts a thread
-    bool connectStart(std::string ip, std::uint16_t port = DEFAULT_PORT);
+    bool connectStart(std::string ip, std::string port = DEFAULT_PORT);
     
     //Listens for connections, starting a thread when we get one
-    bool listenStart(std::uint16_t port = DEFAULT_PORT);
+    bool listenStart(std::string port = DEFAULT_PORT);
 
     //Disconnects from a running connection
     void disconnect() {_killThread = true;}
+
+    //Check if the thread has been killed
+    bool connected() {return !_killThread;}
 
     //Main state-progressing functions
     //Sets the board pointer. This can only be done before CONFIRM_START
@@ -97,9 +99,6 @@ namespace c2
     //The game itself, which we're synchronizing
     Game _game;
 
-    //The number of functions we've applied to the Game
-    std::uint16_t _funcCount;
-
     //The queue of messages going out
     std::queue<Message> _outMessage;
 
@@ -107,7 +106,7 @@ namespace c2
     int _sockfd;
 
     //The IP address of the peer
-    std::vector<std::uint8_t> _address;
+    //std::vector<std::uint8_t> _address;
 
     //When set, the thread will kill itself asap
     bool _killThread;

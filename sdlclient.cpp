@@ -138,7 +138,11 @@ int main(int argc, char* argv[])
   if (std::string(arg_ip) == "host")
     {
       std::cout << "Listening for connections..." << std::endl;
-      ng.listenStart();
+      if (!ng.listenStart())
+        {
+          std::cerr << "Failed to start up networking.\n";
+          return 1;
+        }
     }
   else if (std::string(arg_ip) == "no")
     {
@@ -148,7 +152,11 @@ int main(int argc, char* argv[])
     {
       std::cout << "Connecting to " << arg_ip << std::endl;
       ip = arg_ip;
-      ng.connectStart(ip);
+      if (!ng.connectStart(ip))
+        {
+          std::cerr << "Failed to connect to " << arg_ip << "\n";
+          return 1;
+        }
     }
 
   //Set up armies
@@ -215,6 +223,7 @@ int main(int argc, char* argv[])
   //We should be able to start now! We only need one side to do it, so make white
   if (whiteControl)
     {
+      dialogBox("Hit start when ready.", {"Start"}, screen);
       ng.start();
     }
 
@@ -334,8 +343,8 @@ int main(int argc, char* argv[])
         }
 
       //Make a bid in a duel
-      if (ng.state() == GameStateType::BOTH_BID ||
-          (ng.state() == GameStateType::WHITE_BID && whiteControl))
+      if ((ng.state() == GameStateType::BOTH_BID ||
+           ng.state() == GameStateType::WHITE_BID) && whiteControl)
         {
           std::vector<std::string> choices;
           for (std::uint8_t i = 0; i < ng.stones(SideType::WHITE)+1 && i < 3; i++)
@@ -351,8 +360,8 @@ int main(int argc, char* argv[])
           ng.bid(SideType::WHITE, stones-1);
           
         }
-      if (ng.state() == GameStateType::BOTH_BID ||
-          (ng.state() == GameStateType::BLACK_BID && blackControl))
+      if ((ng.state() == GameStateType::BOTH_BID ||
+           ng.state() == GameStateType::BLACK_BID) && blackControl)
         {
           std::vector<std::string> choices;
           for (std::uint8_t i = 0; i < ng.stones(SideType::BLACK)+1 && i < 3; i++)
@@ -548,6 +557,11 @@ int main(int argc, char* argv[])
       if (errstr.length() > 0)
         {
           std::cerr << errstr << std::endl;
+          quit = true;
+        }
+      if (!ng.connected())
+        {
+          std::cerr << "Lost connection to other player!" << std::endl;
           quit = true;
         }
     }
