@@ -29,6 +29,7 @@
 #ifndef _netgame_hpp_
 #define _netgame_hpp_
 
+#include <cstdio>
 #include <queue>
 #include <vector>
 #include <string>

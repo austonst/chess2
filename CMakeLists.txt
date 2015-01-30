@@ -59,4 +59,5 @@ add_executable(chess2-sdl ${HDRS} ${SRCS})
 target_link_libraries(chess2-sdl
   ${SDL2_LIBRARIES}
   ${SDL2IMAGE_LIBRARIES}
+  -lpthread
   )
