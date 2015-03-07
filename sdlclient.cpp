@@ -12,16 +12,19 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
+#include <map>
 #include "netgame.hpp"
 #include "bitboard.hpp"
+#include "sidebar.hpp"
 #include <sstream>
 
 using namespace c2;
 
-const int SCREEN_WIDTH = 405;
-const int SCREEN_HEIGHT = 405;
+const int BOARD_WIDTH = 405;
+const int BOARD_HEIGHT = 405;
 const int BORDER_WIDTH = 2;
 const int TILE_SIZE = 50;
+const int SIDEBAR_WIDTH = 200;
 
 //Returns 0 on X or error, or i+1 if button[i] was pressed
 int dialogBox(const std::string& text, const std::vector<std::string>& button,
@@ -98,17 +101,25 @@ int main(int argc, char* argv[])
       return 1;
     }
 
-      //Initialize all SDL subsystems
+  //Initialize all SDL subsystems
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-	  std::cerr << "SDL_Init failed: " << SDL_GetError() << "\n";
-	  return 1;
-	}
+      std::cerr << "SDL_Init failed: " << SDL_GetError() << "\n";
+      return 1;
+    }
+
+  //Init SDL_image
+  if((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG)
+    {
+    std::cerr << "IMG_Init: Failed to init required png support!" << std::endl;
+    std::cerr << "IMG_Init: " << IMG_GetError() << std::endl;
+  }
 
   //Set up the screen
   SDL_Window* screen = SDL_CreateWindow("SDL Chess 2", SDL_WINDOWPOS_UNDEFINED,
-                                        SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
-                                        SCREEN_HEIGHT, 0);
+                                        SDL_WINDOWPOS_UNDEFINED,
+                                        BOARD_WIDTH + SIDEBAR_WIDTH,
+                                        BOARD_HEIGHT, 0);
   if (!screen) return 1;
   
   SDL_Renderer* rend = SDL_CreateRenderer(screen, -1, 0);
@@ -130,6 +141,33 @@ int main(int argc, char* argv[])
   SDL_Texture* boardTex = IMG_LoadTexture(rend, "images/board.png");
   SDL_Texture* pieceTex = IMG_LoadTexture(rend, "images/pieces.png");
   SDL_Texture* moveTex = IMG_LoadTexture(rend, "images/move.png");
+
+  //Create a sidebar
+  SDL_Color whiteColor = {255, 255, 255, 255};
+  Sidebar sidebar(SIDEBAR_WIDTH, BOARD_HEIGHT, whiteColor);
+
+  //Put a header image at the top
+  //TODO THIS
+
+  //Make a quit button and an initially invisible follow-up confirmation button
+  //Both should be the heaviest objects
+  Sidebar::iterator button = sidebar.createObject(2000, "quit");
+  button->resizeAndRespace(1);
+  SDL_Texture* quitTex = IMG_LoadTexture(rend, "images/button_quit.png");
+  button->setTexture(0, quitTex);
+  button->respace();
+
+  button = sidebar.createObject(2000, "quitConfirm");
+  button->resizeAndRespace(2);
+  SDL_Texture* reallyTex = IMG_LoadTexture(rend, "images/button_really.png");
+  SDL_Texture* cancelTex = IMG_LoadTexture(rend, "images/button_cancel.png");
+  button->setTexture(0, reallyTex);
+  button->setTexture(1, cancelTex);
+  button->respace(SpacingType::SQUISH_CENTER, 10);
+  button->setVisibility(false);
+
+  //Put other stuff here, like army selection, side selection, stones
+  //TODO THIS
 
   //Look at args to determine networky stuff and set up game
   std::string ip;
@@ -240,6 +278,7 @@ int main(int argc, char* argv[])
   Sint32 mouseLY;
   Sint32 mouseRX;
   Sint32 mouseRY;
+  SidebarClickResponse mouseDownClick;
   Piece selectedPiece;
   std::set<Position> moves;
   bool quit = false;
@@ -249,6 +288,7 @@ int main(int argc, char* argv[])
       SDL_Event e;
       bool lClick = false;
       bool rClick = false;
+      bool sidebarClick = false;
       while (SDL_PollEvent(&e))
         {
           if (e.type == SDL_QUIT) quit = true;
@@ -259,8 +299,17 @@ int main(int argc, char* argv[])
             {
               if (e.button.button == SDL_BUTTON_LEFT)
                 {
-                  mouseLX = (e.button.x-BORDER_WIDTH) / TILE_SIZE;
-                  mouseLY = (e.button.y-BORDER_WIDTH) / TILE_SIZE;
+                  //Check for board vs sidebar left mouse down
+                  if (e.button.x < BOARD_WIDTH)
+                    {
+                      mouseLX = (e.button.x-BORDER_WIDTH) / TILE_SIZE;
+                      mouseLY = (e.button.y-BORDER_WIDTH) / TILE_SIZE;
+                    }
+                  else //Sidebar click
+                    {
+                      mouseDownClick = sidebar.click(e.button.x - BOARD_WIDTH,
+                                                     e.button.y);
+                    }
                 }
               else if (e.button.button == SDL_BUTTON_RIGHT)
                 {
@@ -269,14 +318,39 @@ int main(int argc, char* argv[])
                 }
             }
 
-          if (e.type == SDL_MOUSEBUTTONUP)
+          //Board mouse up
+          else if (e.type == SDL_MOUSEBUTTONUP)
             {
               if (e.button.button == SDL_BUTTON_LEFT)
                 {
-                  if ((e.button.x-BORDER_WIDTH) / TILE_SIZE == mouseLX &&
-                      (e.button.y-BORDER_WIDTH) / TILE_SIZE == mouseLY)
+                  //Check for board vs sidebar left mouse up
+                  if (e.button.x < BOARD_WIDTH)
                     {
-                      lClick = true;
+                      if ((e.button.x-BORDER_WIDTH) / TILE_SIZE == mouseLX &&
+                          (e.button.y-BORDER_WIDTH) / TILE_SIZE == mouseLY)
+                        {
+                          lClick = true;
+                        }
+                    }
+                  else //Sidebar click
+                    {
+                      //First, clear moves to be consistent with "only show
+                      //moves when a piece is clicked"
+                      moves.clear();
+
+                      //Actually handle the click
+                      SidebarClickResponse mouseUpClick;
+                      mouseUpClick = sidebar.click(e.button.x - BOARD_WIDTH,
+                                                   e.button.y);
+                      if (mouseDownClick.sbo == mouseUpClick.sbo &&
+                          sidebar.isValid(mouseDownClick.sbo) &&
+                          mouseDownClick.texture == mouseUpClick.texture)
+                        {
+                          sidebarClick = true;
+                          
+                          //Also use the coordinates of the mouse down
+                          mouseDownClick = mouseUpClick;
+                        }
                     }
                 }
               else if (e.button.button == SDL_BUTTON_RIGHT)
@@ -288,16 +362,14 @@ int main(int argc, char* argv[])
                     }
                 }
             }
+
+          
         }
 
       //Check keys and clicks
-      //Escape quits
-      if (keystates[SDL_SCANCODE_ESCAPE])
-        {
-          quit = true;
-        }
+      //CURRENTLY NONE TO CHECK--ALL MOUSE!
 
-      //Left click changes the selected piece
+      //Left click changes the selected piece or interacts with sidebar
       if (lClick)
         {
           Position clickPos(mouseLX+1, 8-mouseLY);
@@ -330,7 +402,36 @@ int main(int argc, char* argv[])
             }
         }
 
-      //Escape quits
+      //Sidebar clicks behave depending on the clicked object
+      if (sidebarClick)
+        {
+          //Handle each sidebar object
+          if (mouseDownClick.sbo->id() == "quit")
+            {
+              //Only one button, but make sure we hit it
+              if (mouseDownClick.texture == 0)
+                {
+                  //Disable this object, enable the confirmation object
+                  mouseDownClick.sbo->setVisibility(false);
+                  sidebar.object("quitConfirm")->setVisibility(true);
+                }
+            }
+          else if (mouseDownClick.sbo->id() == "quitConfirm")
+            {
+              //Two buttons here
+              if (mouseDownClick.texture == 0)
+                {
+                  //Really button, we quit now
+                  quit = true;
+                }
+              else if (mouseDownClick.texture == 1)
+                {
+                  //Cancel button, we go back to quit object
+                  mouseDownClick.sbo->setVisibility(false);
+                  sidebar.object("quit")->setVisibility(true);
+                }
+            }
+        }
 
       //Depending on game state, we may need to do other things
       //Accept/decline duel
@@ -403,7 +504,8 @@ int main(int argc, char* argv[])
       //Win states come AFTER drawing so we can see the result
 
       //Draw board
-      SDL_RenderCopy(rend, boardTex, NULL, NULL);
+      SDL_Rect boardDst = {0, 0, BOARD_WIDTH, BOARD_HEIGHT};
+      SDL_RenderCopy(rend, boardTex, NULL, &boardDst);
 
       //Draw pieces
       std::list<Position> pieces = board.getPieces(SideType::WHITE);
@@ -528,6 +630,9 @@ int main(int argc, char* argv[])
           srcRec.w = srcRec.h = destRec.w = destRec.h = TILE_SIZE;
           SDL_RenderCopy(rend, moveTex, &srcRec, &destRec);
         }
+
+      //Draw sidebar
+      sidebar.render(rend, BOARD_WIDTH, 0);
       
       //Finalize drawing
       SDL_RenderPresent(rend);
@@ -570,6 +675,7 @@ int main(int argc, char* argv[])
   SDL_DestroyTexture(boardTex);
   SDL_DestroyTexture(pieceTex);
   SDL_DestroyTexture(moveTex);
+  SDL_DestroyTexture(quitTex);
   SDL_DestroyRenderer(rend);
   SDL_DestroyWindow(screen);
   IMG_Quit();

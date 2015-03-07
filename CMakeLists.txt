@@ -32,6 +32,8 @@ set(HDRS
   ./netgame.hpp
   ./piece.hpp
   ./position.hpp
+  ./sidebar.hpp
+  ./sidebarobject.hpp
   )
 
 set(SRCS
@@ -44,6 +46,8 @@ set(SRCS
   ./piece.cpp
   ./position.cpp
   ./sdlclient.cpp
+  ./sidebar.cpp
+  ./sidebarobject.cpp
   )
 
 # Specify output, includes, and links
