@@ -1,9 +1,11 @@
-Modular C++ Sirlin Chess 2
+C++ Sirlin Chess 2
 ==========================
 
 Chess 2 is a variant of classic Chess (the board game) designed by David Sirlin. Details can be found at http://ludemegames.com/chess2/. Some nice features are having six armies to choose from each with significant differences in playstyle and a double-blind betting system that keeps each game different.
 
-This is currently in a very very rough state with countless bugs and a lackluster SDL frontend, but the core gameplay is mostly correct at this point. I just need to identify and squash a bunch of bugs, and maybe improve the UI a bit, and then it'll at least be completely playable. Submit your issues!
+The core game engine itself is complete, with only some bugs to work out. Current development is on improving the SDL frontend written as an example, which is currently functional but does not display all of the information you might like to see.
+
+Contributions would always be nice, and at the moment the biggest pressure points are bug searching and fixing. A fancier frontend would be cool, but would be a significant project.
 
 Installation
 ------------
