@@ -71,20 +71,14 @@ int dialogBox(const std::string& text, const std::vector<std::string>& button,
 
 int main(int argc, char* argv[])
 {
-  std::string arg_whiteArmy, arg_blackArmy, arg_localSide, arg_ip;
-  if (argc == 5)
+  std::string arg_localSide, arg_ip;
+  if (argc == 3)
     {
-      arg_whiteArmy = argv[1];
-      arg_blackArmy = argv[2];
       arg_localSide = argv[3];
       arg_ip = argv[4];
     }
   else
     {
-      std::cout << "Enter first character of name of white army (2 for two kings): ";
-      std::cin >> arg_whiteArmy;
-      std::cout << "Enter first character of name of black army (2 for two kings): ";
-      std::cin >> arg_blackArmy;
       std::cout << "Enter which armies you control locally (white, black, or both): ";
       std::cin >> arg_localSide;
       std::cout << "Enter \"host\" if hosting, host's ip address if connecting, or\n"
@@ -166,7 +160,43 @@ int main(int argc, char* argv[])
   button->respace(SpacingType::SQUISH_CENTER, 10);
   button->setVisibility(false);
 
-  //Put other stuff here, like army selection, side selection, stones
+  //Create army selection objects, set visibility depending on control
+  //10 weight puts them pretty high up
+  //Vectors are arranged CENRA2
+  std::vector<SDL_Texture*> armyTex(6, nullptr);
+  std::vector<SDL_Texture*> armySelTex(6, nullptr);
+  armyTex[0] = IMG_LoadTexture(rend, "images/button_c.png");
+  armySelTex[0] = IMG_LoadTexture(rend, "images/button_sel_c.png");
+  armyTex[1] = IMG_LoadTexture(rend, "images/button_e.png");
+  armySelTex[1] = IMG_LoadTexture(rend, "images/button_sel_e.png");
+  armyTex[2] = IMG_LoadTexture(rend, "images/button_n.png");
+  armySelTex[2] = IMG_LoadTexture(rend, "images/button_sel_n.png");
+  armyTex[3] = IMG_LoadTexture(rend, "images/button_r.png");
+  armySelTex[3] = IMG_LoadTexture(rend, "images/button_sel_r.png");
+  armyTex[4] = IMG_LoadTexture(rend, "images/button_a.png");
+  armySelTex[4] = IMG_LoadTexture(rend, "images/button_sel_a.png");
+  armyTex[5] = IMG_LoadTexture(rend, "images/button_2.png");
+  armySelTex[5] = IMG_LoadTexture(rend, "images/button_sel_2.png");
+  
+  SidebarObject buildSBO(armyTex, SIDEBAR_WIDTH, SpacingType::UNIFORM);
+  buildSBO.prepareForInsert(10, "whiteArmy");
+  buildSBO.setVisibility(whiteControl);
+  sidebar.insertObject(buildSBO);
+
+  buildSBO.prepareForInsert(10, "blackArmy");
+  buildSBO.setVisibility(blackControl);
+  sidebar.insertObject(buildSBO);
+
+  //Create start object to lock in army selection and try to start the game
+  //Weight is 15 to appear below army selection
+  //Button always starts visible
+  button = sidebar.createObject(15, "start");
+  button->resizeAndRespace(1);
+  SDL_Texture* startTex = IMG_LoadTexture(rend, "images/button_start.png");
+  button->setTexture(0, startTex);
+  button->respace();
+
+  //Put other stuff here, like side selection, stones
   //TODO THIS
 
   //Look at args to determine networky stuff and set up game
@@ -195,74 +225,6 @@ int main(int argc, char* argv[])
           std::cerr << "Failed to connect to " << arg_ip << "\n";
           return 1;
         }
-    }
-
-  //Set up armies
-  if (std::string(arg_whiteArmy) == "c")
-    {
-      ng.setArmy(SideType::WHITE, ArmyType::CLASSIC);
-    }
-  else if (std::string(arg_whiteArmy) == "e")
-    {
-      ng.setArmy(SideType::WHITE, ArmyType::EMPOWERED);
-    }
-  else if (std::string(arg_whiteArmy) == "n")
-    {
-      ng.setArmy(SideType::WHITE, ArmyType::NEMESIS);
-    }
-  else if (std::string(arg_whiteArmy) == "r")
-    {
-      ng.setArmy(SideType::WHITE, ArmyType::REAPER);
-    }
-  else if (std::string(arg_whiteArmy) == "2")
-    {
-      ng.setArmy(SideType::WHITE, ArmyType::TWOKINGS);
-    }
-  else if (std::string(arg_whiteArmy) == "a")
-    {
-      ng.setArmy(SideType::WHITE, ArmyType::ANIMALS);
-    }
-  else
-    {
-      std::cerr << "The army for white must be given as one of 'cenr2a', you put: " << arg_whiteArmy << std::endl;
-      return 1;
-    }
-  
-  if (std::string(arg_blackArmy) == "c")
-    {
-      ng.setArmy(SideType::BLACK, ArmyType::CLASSIC);
-    }
-  else if (std::string(arg_blackArmy) == "e")
-    {
-      ng.setArmy(SideType::BLACK, ArmyType::EMPOWERED);
-    }
-  else if (std::string(arg_blackArmy) == "n")
-    {
-      ng.setArmy(SideType::BLACK, ArmyType::NEMESIS);
-    }
-  else if (std::string(arg_blackArmy) == "r")
-    {
-      ng.setArmy(SideType::BLACK, ArmyType::REAPER);
-    }
-  else if (std::string(arg_blackArmy) == "2")
-    {
-      ng.setArmy(SideType::BLACK, ArmyType::TWOKINGS);
-    }
-  else if (std::string(arg_blackArmy) == "a")
-    {
-      ng.setArmy(SideType::BLACK, ArmyType::ANIMALS);
-    }
-  else
-    {
-      std::cerr << "The army for black must be given as one character in 'cenr2a', you put: " << arg_blackArmy << std::endl;
-      return 1;
-    }
-
-  //We should be able to start now! We only need one side to do it, so make white
-  if (whiteControl)
-    {
-      dialogBox("Hit start when ready.", {"Start"}, screen);
-      ng.start();
     }
 
   //Check for any errors during setup
@@ -429,6 +391,59 @@ int main(int argc, char* argv[])
                   //Cancel button, we go back to quit object
                   mouseDownClick.sbo->setVisibility(false);
                   sidebar.object("quit")->setVisibility(true);
+                }
+            }
+          else if (mouseDownClick.sbo->id() == "whiteArmy" ||
+                   mouseDownClick.sbo->id() == "blackArmy")
+            {
+              //Set all appearnaces to unselected except for this one
+              for (size_t i = 0; i < mouseDownClick.sbo->size(); i++)
+                {
+                  mouseDownClick.sbo->setTexture(i, armyTex[i]);
+                }
+              mouseDownClick.sbo->setTexture(mouseDownClick.texture,
+                                             armySelTex[mouseDownClick.texture]);
+
+              SideType setType = mouseDownClick.sbo->id() == "whiteArmy" ?
+                SideType::WHITE : SideType::BLACK;
+              //Buttons are arranged cenra2
+              switch(mouseDownClick.texture)
+                {
+                case 0: //Classic
+                  ng.setArmy(setType, ArmyType::CLASSIC);
+                  break;
+                  
+                case 1: //Empowered
+                  ng.setArmy(setType, ArmyType::EMPOWERED);
+                  break;
+                  
+                case 2: //Nemesis
+                  ng.setArmy(setType, ArmyType::NEMESIS);
+                  break;
+                    
+                case 3: //Reaper
+                  ng.setArmy(setType, ArmyType::REAPER);
+                  break;
+                    
+                case 4: //Animals
+                  ng.setArmy(setType, ArmyType::ANIMALS);
+                  break;
+                    
+                case 5: //Two kings
+                  ng.setArmy(setType, ArmyType::TWOKINGS);
+                  break;
+                }
+            }
+          else if (mouseDownClick.sbo->id() == "start")
+            {
+              //There's a chance start won't work (armies not set)
+              if (ng.start() == GameReturnType::SUCCESS)
+                {
+                  //If it does, we need to set up the game objects
+                  //TODO HERE MAKE GAME OBJECTS VISIBLE
+                  sidebar.object("whiteArmy")->setVisibility(false);
+                  sidebar.object("blackArmy")->setVisibility(false);
+                  mouseDownClick.sbo->setVisibility(false);
                 }
             }
         }

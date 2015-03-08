@@ -158,7 +158,7 @@ SidebarClickResponse Sidebar::click(int x, int y) const
       if ((yStep += fwd->height()) > y)
         {
           //Get details from the object
-          SidebarObjectClickResponse sbocr = fwd->click(x, y - yStep);
+          SidebarObjectClickResponse sbocr = fwd->click(x, yStep - y);
 
           //Build up the struct and finish up
           sbcr.sbo = fwd;

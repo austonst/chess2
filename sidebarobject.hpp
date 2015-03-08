@@ -77,6 +77,7 @@ public:
   //Getters and setters
   //Changing a texture without respacing may cause the spacing to be incorrect
   //if the width changes. Only SQUISH_LEFT is guaranteed to stay correct.
+  std::size_t size() const {return image_.size();}
   void setTexture(std::size_t i, SDL_Texture* t) const;
   SDL_Texture* texture(std::size_t i) const {return image_[i];}
   void setMaxWidth(int w) const {width_ = w;}
