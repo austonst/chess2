@@ -19,6 +19,8 @@
 namespace c2
 {
 
+  const std::size_t NUM_GAMESTATES = 22;
+
   enum class GameStateType : std::uint8_t
   {
     SET_BOARD,

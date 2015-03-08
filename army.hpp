@@ -18,6 +18,8 @@
 
 namespace c2
 {
+
+  const std::size_t NUM_ARMIES = 6;
   
   enum class ArmyType : std::uint8_t
     {
@@ -30,6 +32,7 @@ namespace c2
       NONE
     };
   inline std::uint8_t num(ArmyType a) {return static_cast<std::uint8_t>(a);}
+  inline ArmyType toArmy(std::uint8_t n) {return static_cast<ArmyType>(n);}
 
   //ARMY_PROMOTE(num(ArmyTpe)) gives you the pieces a pawn of that army
   //can promote to

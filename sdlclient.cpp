@@ -162,21 +162,20 @@ int main(int argc, char* argv[])
 
   //Create army selection objects, set visibility depending on control
   //10 weight puts them pretty high up
-  //Vectors are arranged CENRA2
-  std::vector<SDL_Texture*> armyTex(6, nullptr);
-  std::vector<SDL_Texture*> armySelTex(6, nullptr);
-  armyTex[0] = IMG_LoadTexture(rend, "images/button_c.png");
-  armySelTex[0] = IMG_LoadTexture(rend, "images/button_sel_c.png");
-  armyTex[1] = IMG_LoadTexture(rend, "images/button_e.png");
-  armySelTex[1] = IMG_LoadTexture(rend, "images/button_sel_e.png");
-  armyTex[2] = IMG_LoadTexture(rend, "images/button_n.png");
-  armySelTex[2] = IMG_LoadTexture(rend, "images/button_sel_n.png");
-  armyTex[3] = IMG_LoadTexture(rend, "images/button_r.png");
-  armySelTex[3] = IMG_LoadTexture(rend, "images/button_sel_r.png");
-  armyTex[4] = IMG_LoadTexture(rend, "images/button_a.png");
-  armySelTex[4] = IMG_LoadTexture(rend, "images/button_sel_a.png");
-  armyTex[5] = IMG_LoadTexture(rend, "images/button_2.png");
-  armySelTex[5] = IMG_LoadTexture(rend, "images/button_sel_2.png");
+  std::vector<SDL_Texture*> armyTex(NUM_ARMIES, nullptr);
+  std::vector<SDL_Texture*> armySelTex(NUM_ARMIES, nullptr);
+  armyTex[num(ArmyType::CLASSIC)] = IMG_LoadTexture(rend, "images/button_c.png");
+  armySelTex[num(ArmyType::CLASSIC)] = IMG_LoadTexture(rend, "images/button_sel_c.png");
+  armyTex[num(ArmyType::EMPOWERED)] = IMG_LoadTexture(rend, "images/button_e.png");
+  armySelTex[num(ArmyType::EMPOWERED)] = IMG_LoadTexture(rend, "images/button_sel_e.png");
+  armyTex[num(ArmyType::NEMESIS)] = IMG_LoadTexture(rend, "images/button_n.png");
+  armySelTex[num(ArmyType::NEMESIS)] = IMG_LoadTexture(rend, "images/button_sel_n.png");
+  armyTex[num(ArmyType::REAPER)] = IMG_LoadTexture(rend, "images/button_r.png");
+  armySelTex[num(ArmyType::REAPER)] = IMG_LoadTexture(rend, "images/button_sel_r.png");
+  armyTex[num(ArmyType::ANIMALS)] = IMG_LoadTexture(rend, "images/button_a.png");
+  armySelTex[num(ArmyType::ANIMALS)] = IMG_LoadTexture(rend, "images/button_sel_a.png");
+  armyTex[num(ArmyType::TWOKINGS)] = IMG_LoadTexture(rend, "images/button_2.png");
+  armySelTex[num(ArmyType::TWOKINGS)] = IMG_LoadTexture(rend, "images/button_sel_2.png");
   
   SidebarObject buildSBO(armyTex, SIDEBAR_WIDTH, SpacingType::UNIFORM);
   buildSBO.prepareForInsert(10, "whiteArmy");
@@ -195,6 +194,40 @@ int main(int argc, char* argv[])
   SDL_Texture* startTex = IMG_LoadTexture(rend, "images/button_start.png");
   button->setTexture(0, startTex);
   button->respace();
+
+  //Create game status tracker, showing player's armies, whose turn it is,
+  //and some state information
+  button = sidebar.createObject(15, "state");
+  button->resizeAndRespace(3);
+  button->setVertAlign(VertAlignType::CENTER);
+  std::vector<SDL_Texture*> statusTex(NUM_GAMESTATES, nullptr);
+  statusTex[num(GameStateType::WHITE_MOVE)] =
+    statusTex[num(GameStateType::BLACK_MOVE)] =
+    IMG_LoadTexture(rend, "images/state_move.png");
+  statusTex[num(GameStateType::WHITE_KINGMOVE)] =
+    statusTex[num(GameStateType::BLACK_KINGMOVE)] =
+    IMG_LoadTexture(rend, "images/state_kingmove.png");
+  statusTex[num(GameStateType::WHITE_DUEL)] =
+    statusTex[num(GameStateType::BLACK_DUEL)] =
+    IMG_LoadTexture(rend, "images/state_duel.png");
+  statusTex[num(GameStateType::BOTH_BID)] =
+    statusTex[num(GameStateType::WHITE_BID)] =
+    statusTex[num(GameStateType::BLACK_BID)] =
+    IMG_LoadTexture(rend, "images/state_bid.png");
+  statusTex[num(GameStateType::WHITE_PROMOTE)] =
+    statusTex[num(GameStateType::BLACK_PROMOTE)] =
+    IMG_LoadTexture(rend, "images/state_promote.png");
+  statusTex[num(GameStateType::WHITE_WIN_CHECKMATE)] =
+    statusTex[num(GameStateType::WHITE_WIN_MIDLINE)] =
+    IMG_LoadTexture(rend, "images/state_whitewin.png");
+  statusTex[num(GameStateType::BLACK_WIN_CHECKMATE)] =
+    statusTex[num(GameStateType::BLACK_WIN_MIDLINE)] =
+    IMG_LoadTexture(rend, "images/state_blackwin.png");
+  statusTex[num(GameStateType::DRAW_THREEFOLD)] =
+    statusTex[num(GameStateType::DRAW_FIFTYMOVE)] =
+    IMG_LoadTexture(rend, "images/state_draw.png");
+  //No textures are initially set since none are yet known
+  button->setVisibility(false);
 
   //Put other stuff here, like side selection, stones
   //TODO THIS
@@ -404,34 +437,13 @@ int main(int argc, char* argv[])
               mouseDownClick.sbo->setTexture(mouseDownClick.texture,
                                              armySelTex[mouseDownClick.texture]);
 
-              SideType setType = mouseDownClick.sbo->id() == "whiteArmy" ?
-                SideType::WHITE : SideType::BLACK;
-              //Buttons are arranged cenra2
-              switch(mouseDownClick.texture)
+              if (mouseDownClick.sbo->id() == "whiteArmy")
                 {
-                case 0: //Classic
-                  ng.setArmy(setType, ArmyType::CLASSIC);
-                  break;
-                  
-                case 1: //Empowered
-                  ng.setArmy(setType, ArmyType::EMPOWERED);
-                  break;
-                  
-                case 2: //Nemesis
-                  ng.setArmy(setType, ArmyType::NEMESIS);
-                  break;
-                    
-                case 3: //Reaper
-                  ng.setArmy(setType, ArmyType::REAPER);
-                  break;
-                    
-                case 4: //Animals
-                  ng.setArmy(setType, ArmyType::ANIMALS);
-                  break;
-                    
-                case 5: //Two kings
-                  ng.setArmy(setType, ArmyType::TWOKINGS);
-                  break;
+                  ng.setArmy(SideType::WHITE, toArmy(mouseDownClick.texture));
+                }
+              else //blackArmy
+                {
+                  ng.setArmy(SideType::BLACK, toArmy(mouseDownClick.texture));
                 }
             }
           else if (mouseDownClick.sbo->id() == "start")
@@ -440,13 +452,33 @@ int main(int argc, char* argv[])
               if (ng.start() == GameReturnType::SUCCESS)
                 {
                   //If it does, we need to set up the game objects
-                  //TODO HERE MAKE GAME OBJECTS VISIBLE
                   sidebar.object("whiteArmy")->setVisibility(false);
                   sidebar.object("blackArmy")->setVisibility(false);
                   mouseDownClick.sbo->setVisibility(false);
+
+                  sidebar.object("state")->setVisibility(true);
                 }
             }
         }
+
+      //Update sidebar status depending on state
+      Sidebar::iterator statusObject = sidebar.object("state");
+      statusObject->setTexture(1, statusTex[num(ng.state())]);
+      if (ng.state() == GameStateType::WHITE_MOVE)
+        {
+          int armyIndex = num(ng.army(SideType::WHITE));
+          statusObject->setTexture(0, armySelTex[armyIndex]);
+          armyIndex = num(ng.army(SideType::BLACK));
+          statusObject->setTexture(2, armyTex[armyIndex]);
+        }
+      else if (ng.state() == GameStateType::BLACK_MOVE)
+        {
+          int armyIndex = num(ng.army(SideType::WHITE));
+          statusObject->setTexture(0, armyTex[armyIndex]);
+          armyIndex = num(ng.army(SideType::BLACK));
+          statusObject->setTexture(2, armySelTex[armyIndex]);
+        }
+      statusObject->respace(SpacingType::UNIFORM);
 
       //Depending on game state, we may need to do other things
       //Accept/decline duel
