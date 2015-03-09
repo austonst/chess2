@@ -191,6 +191,28 @@ namespace c2
         return GameReturnType::INVALID_MOVE;
       }
 
+    //See if this is a king turn skip move, with a usually invalid end position
+    if (m.type == PieceType::TKG_WARRKING && m.end == KINGMOVE_SKIP_POS)
+      {
+        //This turn entirely does not happen
+        //Verify current state and force a state transition
+        if (_state == GameStateType::WHITE_KINGMOVE)
+          {
+            _state = GameStateType::BLACK_MOVE;
+            _isKingTurn = false;
+          }
+        else if (_state == GameStateType::BLACK_KINGMOVE)
+          {
+            _state = GameStateType::WHITE_MOVE;
+            _isKingTurn = false;
+          }
+        else
+          {
+            return GameReturnType::INVALID_STATE;
+          }
+        return GameReturnType::SUCCESS;
+      }
+
     //Verify that the destination is feasible
     if (!(m.end.isValid()))
       {

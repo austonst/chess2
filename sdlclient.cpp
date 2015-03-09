@@ -229,6 +229,15 @@ int main(int argc, char* argv[])
   //No textures are initially set since none are yet known
   button->setVisibility(false);
 
+  //Create king move skip object
+  //Weight of 30 to put it below most things
+  button = sidebar.createObject(30, "skipking");
+  button->resizeAndRespace(1);
+  SDL_Texture* skipKingTex = IMG_LoadTexture(rend, "images/button_skipking.png");
+  button->setTexture(0, skipKingTex);
+  button->respace();
+  button->setVisibility(false);
+
   //Put other stuff here, like side selection, stones
   //TODO THIS
 
@@ -459,6 +468,23 @@ int main(int argc, char* argv[])
                   sidebar.object("state")->setVisibility(true);
                 }
             }
+          else if (mouseDownClick.sbo->id() == "skipking")
+            {
+              if (mouseDownClick.texture == 0)
+                {
+                  //Find a king
+                  SideType kingside = SideType::WHITE;
+                  if (ng.state() == GameStateType::BLACK_KINGMOVE)
+                    {
+                      kingside = SideType::BLACK;
+                    }
+
+                  //Move him to the special position in order to skip the turn
+                  Position king = board.getKing(kingside)[0];
+                  ng.move(Move(king, KINGMOVE_SKIP_POS, PieceType::TKG_WARRKING,
+                               kingside));
+                }
+            }
         }
 
       //Update sidebar status depending on state
@@ -479,6 +505,17 @@ int main(int argc, char* argv[])
           statusObject->setTexture(2, armySelTex[armyIndex]);
         }
       statusObject->respace(SpacingType::UNIFORM);
+
+      //If we are in a king move, the sidebar skip button needs to be visible
+      if ((ng.state() == GameStateType::WHITE_KINGMOVE && whiteControl) ||
+          (ng.state() == GameStateType::BLACK_KINGMOVE && blackControl))
+        {
+          sidebar.object("skipking")->setVisibility(true);
+        }
+      else
+        {
+          sidebar.object("skipking")->setVisibility(false);
+        }
 
       //Depending on game state, we may need to do other things
       //Accept/decline duel

@@ -63,6 +63,10 @@ namespace c2
     GAME_OVER_DRAW
   };
 
+  //This is usually an invalid position, but telling a 2kings king to move here
+  //during a king turn will instruct the game to skip that king turn.
+  const Position KINGMOVE_SKIP_POS(9, 9);
+
   class Game
   {
   public:
