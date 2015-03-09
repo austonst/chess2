@@ -74,8 +74,8 @@ int main(int argc, char* argv[])
   std::string arg_localSide, arg_ip;
   if (argc == 3)
     {
-      arg_localSide = argv[3];
-      arg_ip = argv[4];
+      arg_localSide = argv[1];
+      arg_ip = argv[2];
     }
   else
     {
