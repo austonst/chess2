@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
   SDL_Texture* stoneNoneTex = IMG_LoadTexture(rend, "images/stone_none.png");
   SDL_Texture* stoneWhiteTex = IMG_LoadTexture(rend, "images/stone_white.png");
   SDL_Texture* stoneBlackTex = IMG_LoadTexture(rend, "images/stone_black.png");
-  SidebarObject stonesObj(std::vector<SDL_Texture*>(5, stoneNoneTex),
+  SidebarObject stonesObj(std::vector<SDL_Texture*>(6, stoneNoneTex),
                           SIDEBAR_WIDTH, SpacingType::SQUISH_CENTER, 5);
   stonesObj.setVisibility(false);
   sidebar.insertObject(stonesObj, 16, "blackstones");
@@ -537,7 +537,7 @@ int main(int argc, char* argv[])
         {
           sidebar.object(17, "whitestones")->setTexture(i, stoneWhiteTex);
         }
-      for (size_t i = ng.stones(SideType::WHITE); i < 5; i++)
+      for (size_t i = ng.stones(SideType::WHITE); i < 6; i++)
         {
           sidebar.object(17, "whitestones")->setTexture(i, stoneNoneTex);
         }
@@ -545,7 +545,7 @@ int main(int argc, char* argv[])
         {
           sidebar.object(16, "blackstones")->setTexture(i, stoneBlackTex);
         }
-      for (size_t i = ng.stones(SideType::BLACK); i < 5; i++)
+      for (size_t i = ng.stones(SideType::BLACK); i < 6; i++)
         {
           sidebar.object(16, "blackstones")->setTexture(i, stoneNoneTex);
         }
