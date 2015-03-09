@@ -458,7 +458,8 @@ int main(int argc, char* argv[])
           else if (mouseDownClick.sbo->id() == "start")
             {
               //There's a chance start won't work (armies not set)
-              if (ng.start() == GameReturnType::SUCCESS)
+              if (mouseDownClick.texture == 0 &&
+                  ng.start() == GameReturnType::SUCCESS)
                 {
                   //If it does, we need to set up the game objects
                   sidebar.object("whiteArmy")->setVisibility(false);
