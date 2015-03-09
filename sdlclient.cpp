@@ -296,6 +296,7 @@ int main(int argc, char* argv[])
   SidebarClickResponse mouseDownClick;
   Piece selectedPiece;
   std::set<Position> moves;
+  int timer = SDL_GetTicks();
   bool quit = false;
   while (!quit)
     {
@@ -786,6 +787,14 @@ int main(int argc, char* argv[])
           std::cerr << "Lost connection to other player!" << std::endl;
           quit = true;
         }
+
+      //Cap FPS at 30
+      int newtimer = SDL_GetTicks();
+      if (newtimer - timer < 1000.0/30.)
+        {
+          SDL_Delay(1000./30. - (newtimer-timer));
+        }
+      timer = newtimer;
     }
 
   //Clean up
