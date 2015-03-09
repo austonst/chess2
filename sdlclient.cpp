@@ -13,10 +13,12 @@
 #include <SDL_image.h>
 #include <iostream>
 #include <map>
+#include <memory>
 #include "netgame.hpp"
 #include "bitboard.hpp"
 #include "sidebar.hpp"
 #include <sstream>
+
 
 using namespace c2;
 
@@ -25,6 +27,8 @@ const int BOARD_HEIGHT = 405;
 const int BORDER_WIDTH = 2;
 const int TILE_SIZE = 50;
 const int SIDEBAR_WIDTH = 200;
+
+typedef std::shared_ptr<SDL_Texture> TexPtr;
 
 //Returns 0 on X or error, or i+1 if button[i] was pressed
 int dialogBox(const std::string& text, const std::vector<std::string>& button,
@@ -132,9 +136,9 @@ int main(int argc, char* argv[])
   SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
 
   //Load the board and piece images
-  SDL_Texture* boardTex = IMG_LoadTexture(rend, "images/board.png");
-  SDL_Texture* pieceTex = IMG_LoadTexture(rend, "images/pieces.png");
-  SDL_Texture* moveTex = IMG_LoadTexture(rend, "images/move.png");
+  TexPtr boardTex(IMG_LoadTexture(rend, "images/board.png"), SDL_DestroyTexture);
+  TexPtr pieceTex(IMG_LoadTexture(rend, "images/pieces.png"), SDL_DestroyTexture);
+  TexPtr moveTex(IMG_LoadTexture(rend, "images/move.png"), SDL_DestroyTexture);
 
   //Create a sidebar
   SDL_Color whiteColor = {255, 255, 255, 255};
@@ -147,14 +151,14 @@ int main(int argc, char* argv[])
   //Both should be the heaviest objects
   Sidebar::iterator button = sidebar.createObject(2000, "quit");
   button->resizeAndRespace(1);
-  SDL_Texture* quitTex = IMG_LoadTexture(rend, "images/button_quit.png");
+  TexPtr quitTex(IMG_LoadTexture(rend, "images/button_quit.png"), SDL_DestroyTexture);
   button->setTexture(0, quitTex);
   button->respace();
 
   button = sidebar.createObject(2000, "quitConfirm");
   button->resizeAndRespace(2);
-  SDL_Texture* reallyTex = IMG_LoadTexture(rend, "images/button_really.png");
-  SDL_Texture* cancelTex = IMG_LoadTexture(rend, "images/button_cancel.png");
+  TexPtr reallyTex(IMG_LoadTexture(rend, "images/button_really.png"), SDL_DestroyTexture);
+  TexPtr cancelTex(IMG_LoadTexture(rend, "images/button_cancel.png"), SDL_DestroyTexture);
   button->setTexture(0, reallyTex);
   button->setTexture(1, cancelTex);
   button->respace(SpacingType::SQUISH_CENTER, 10);
@@ -162,20 +166,20 @@ int main(int argc, char* argv[])
 
   //Create army selection objects, set visibility depending on control
   //10 weight puts them pretty high up
-  std::vector<SDL_Texture*> armyTex(NUM_ARMIES, nullptr);
-  std::vector<SDL_Texture*> armySelTex(NUM_ARMIES, nullptr);
-  armyTex[num(ArmyType::CLASSIC)] = IMG_LoadTexture(rend, "images/button_c.png");
-  armySelTex[num(ArmyType::CLASSIC)] = IMG_LoadTexture(rend, "images/button_sel_c.png");
-  armyTex[num(ArmyType::EMPOWERED)] = IMG_LoadTexture(rend, "images/button_e.png");
-  armySelTex[num(ArmyType::EMPOWERED)] = IMG_LoadTexture(rend, "images/button_sel_e.png");
-  armyTex[num(ArmyType::NEMESIS)] = IMG_LoadTexture(rend, "images/button_n.png");
-  armySelTex[num(ArmyType::NEMESIS)] = IMG_LoadTexture(rend, "images/button_sel_n.png");
-  armyTex[num(ArmyType::REAPER)] = IMG_LoadTexture(rend, "images/button_r.png");
-  armySelTex[num(ArmyType::REAPER)] = IMG_LoadTexture(rend, "images/button_sel_r.png");
-  armyTex[num(ArmyType::ANIMALS)] = IMG_LoadTexture(rend, "images/button_a.png");
-  armySelTex[num(ArmyType::ANIMALS)] = IMG_LoadTexture(rend, "images/button_sel_a.png");
-  armyTex[num(ArmyType::TWOKINGS)] = IMG_LoadTexture(rend, "images/button_2.png");
-  armySelTex[num(ArmyType::TWOKINGS)] = IMG_LoadTexture(rend, "images/button_sel_2.png");
+  std::vector<TexPtr> armyTex(NUM_ARMIES, nullptr);
+  std::vector<TexPtr> armySelTex(NUM_ARMIES, nullptr);
+  armyTex[num(ArmyType::CLASSIC)].reset(IMG_LoadTexture(rend, "images/button_c.png"), SDL_DestroyTexture);
+  armySelTex[num(ArmyType::CLASSIC)].reset(IMG_LoadTexture(rend, "images/button_sel_c.png"), SDL_DestroyTexture);
+  armyTex[num(ArmyType::EMPOWERED)].reset(IMG_LoadTexture(rend, "images/button_e.png"), SDL_DestroyTexture);
+  armySelTex[num(ArmyType::EMPOWERED)].reset(IMG_LoadTexture(rend, "images/button_sel_e.png"), SDL_DestroyTexture);
+  armyTex[num(ArmyType::NEMESIS)].reset(IMG_LoadTexture(rend, "images/button_n.png"), SDL_DestroyTexture);
+  armySelTex[num(ArmyType::NEMESIS)].reset(IMG_LoadTexture(rend, "images/button_sel_n.png"), SDL_DestroyTexture);
+  armyTex[num(ArmyType::REAPER)].reset(IMG_LoadTexture(rend, "images/button_r.png"), SDL_DestroyTexture);
+  armySelTex[num(ArmyType::REAPER)].reset(IMG_LoadTexture(rend, "images/button_sel_r.png"), SDL_DestroyTexture);
+  armyTex[num(ArmyType::ANIMALS)].reset(IMG_LoadTexture(rend, "images/button_a.png"), SDL_DestroyTexture);
+  armySelTex[num(ArmyType::ANIMALS)].reset(IMG_LoadTexture(rend, "images/button_sel_a.png"), SDL_DestroyTexture);
+  armyTex[num(ArmyType::TWOKINGS)].reset(IMG_LoadTexture(rend, "images/button_2.png"), SDL_DestroyTexture);
+  armySelTex[num(ArmyType::TWOKINGS)].reset(IMG_LoadTexture(rend, "images/button_sel_2.png"), SDL_DestroyTexture);
   
   SidebarObject buildSBO(armyTex, SIDEBAR_WIDTH, SpacingType::UNIFORM);
   buildSBO.prepareForInsert(10, "whiteArmy");
@@ -191,7 +195,7 @@ int main(int argc, char* argv[])
   //Button always starts visible
   button = sidebar.createObject(15, "start");
   button->resizeAndRespace(1);
-  SDL_Texture* startTex = IMG_LoadTexture(rend, "images/button_start.png");
+  TexPtr startTex(IMG_LoadTexture(rend, "images/button_start.png"), SDL_DestroyTexture);
   button->setTexture(0, startTex);
   button->respace();
 
@@ -200,32 +204,33 @@ int main(int argc, char* argv[])
   button = sidebar.createObject(15, "state");
   button->resizeAndRespace(3);
   button->setVertAlign(VertAlignType::CENTER);
-  std::vector<SDL_Texture*> statusTex(NUM_GAMESTATES, nullptr);
-  statusTex[num(GameStateType::WHITE_MOVE)] =
-    statusTex[num(GameStateType::BLACK_MOVE)] =
-    IMG_LoadTexture(rend, "images/state_move.png");
-  statusTex[num(GameStateType::WHITE_KINGMOVE)] =
-    statusTex[num(GameStateType::BLACK_KINGMOVE)] =
-    IMG_LoadTexture(rend, "images/state_kingmove.png");
-  statusTex[num(GameStateType::WHITE_DUEL)] =
-    statusTex[num(GameStateType::BLACK_DUEL)] =
-    IMG_LoadTexture(rend, "images/state_duel.png");
-  statusTex[num(GameStateType::BOTH_BID)] =
-    statusTex[num(GameStateType::WHITE_BID)] =
-    statusTex[num(GameStateType::BLACK_BID)] =
-    IMG_LoadTexture(rend, "images/state_bid.png");
-  statusTex[num(GameStateType::WHITE_PROMOTE)] =
-    statusTex[num(GameStateType::BLACK_PROMOTE)] =
-    IMG_LoadTexture(rend, "images/state_promote.png");
-  statusTex[num(GameStateType::WHITE_WIN_CHECKMATE)] =
-    statusTex[num(GameStateType::WHITE_WIN_MIDLINE)] =
-    IMG_LoadTexture(rend, "images/state_whitewin.png");
-  statusTex[num(GameStateType::BLACK_WIN_CHECKMATE)] =
-    statusTex[num(GameStateType::BLACK_WIN_MIDLINE)] =
-    IMG_LoadTexture(rend, "images/state_blackwin.png");
-  statusTex[num(GameStateType::DRAW_THREEFOLD)] =
-    statusTex[num(GameStateType::DRAW_FIFTYMOVE)] =
-    IMG_LoadTexture(rend, "images/state_draw.png");
+  std::vector<TexPtr> statusTex(NUM_GAMESTATES, nullptr);
+  //Move texture
+  statusTex[num(GameStateType::WHITE_MOVE)].reset(IMG_LoadTexture(rend, "images/state_move.png"), SDL_DestroyTexture);
+  statusTex[num(GameStateType::BLACK_MOVE)] = statusTex[num(GameStateType::WHITE_MOVE)];
+  //King move texture
+  statusTex[num(GameStateType::WHITE_KINGMOVE)].reset(IMG_LoadTexture(rend, "images/state_kingmove.png"), SDL_DestroyTexture);
+  statusTex[num(GameStateType::BLACK_KINGMOVE)] = statusTex[num(GameStateType::WHITE_KINGMOVE)];
+  //Duel texture
+  statusTex[num(GameStateType::WHITE_DUEL)].reset(IMG_LoadTexture(rend, "images/state_duel.png"), SDL_DestroyTexture);
+  statusTex[num(GameStateType::BLACK_DUEL)] = statusTex[num(GameStateType::WHITE_DUEL)];
+  //Bid texture
+  statusTex[num(GameStateType::BOTH_BID)].reset(IMG_LoadTexture(rend, "images/state_bid.png"), SDL_DestroyTexture);
+  statusTex[num(GameStateType::WHITE_BID)] = statusTex[num(GameStateType::BOTH_BID)];
+  statusTex[num(GameStateType::BLACK_BID)] = statusTex[num(GameStateType::BOTH_BID)];
+  //Promote texture
+  statusTex[num(GameStateType::WHITE_PROMOTE)].reset(IMG_LoadTexture(rend, "images/state_promote.png"), SDL_DestroyTexture);
+  statusTex[num(GameStateType::BLACK_PROMOTE)] = statusTex[num(GameStateType::WHITE_PROMOTE)];
+  //White win texture
+  statusTex[num(GameStateType::WHITE_WIN_CHECKMATE)].reset(IMG_LoadTexture(rend, "images/state_whitewin.png"), SDL_DestroyTexture);
+  statusTex[num(GameStateType::WHITE_WIN_MIDLINE)] = statusTex[num(GameStateType::WHITE_WIN_CHECKMATE)];
+  //Black win texture
+  statusTex[num(GameStateType::BLACK_WIN_CHECKMATE)].reset(IMG_LoadTexture(rend, "images/state_blackwin.png"), SDL_DestroyTexture);
+  statusTex[num(GameStateType::BLACK_WIN_MIDLINE)] = statusTex[num(GameStateType::BLACK_WIN_CHECKMATE)];
+  //Draw texture
+  statusTex[num(GameStateType::DRAW_THREEFOLD)].reset(IMG_LoadTexture(rend, "images/state_draw.png"), SDL_DestroyTexture);
+  statusTex[num(GameStateType::DRAW_FIFTYMOVE)] = statusTex[num(GameStateType::DRAW_THREEFOLD)];
+
   //No textures are initially set since none are yet known
   button->setVisibility(false);
 
@@ -233,17 +238,17 @@ int main(int argc, char* argv[])
   //Weight of 30 to put it below most things
   button = sidebar.createObject(30, "skipking");
   button->resizeAndRespace(1);
-  SDL_Texture* skipKingTex = IMG_LoadTexture(rend, "images/button_skipking.png");
+  TexPtr skipKingTex(IMG_LoadTexture(rend, "images/button_skipking.png"), SDL_DestroyTexture);
   button->setTexture(0, skipKingTex);
   button->respace();
   button->setVisibility(false);
 
   //Create stone tracking objects
   //Weight of 16 and 17 put them right below state
-  SDL_Texture* stoneNoneTex = IMG_LoadTexture(rend, "images/stone_none.png");
-  SDL_Texture* stoneWhiteTex = IMG_LoadTexture(rend, "images/stone_white.png");
-  SDL_Texture* stoneBlackTex = IMG_LoadTexture(rend, "images/stone_black.png");
-  SidebarObject stonesObj(std::vector<SDL_Texture*>(6, stoneNoneTex),
+  TexPtr stoneNoneTex(IMG_LoadTexture(rend, "images/stone_none.png"), SDL_DestroyTexture);
+  TexPtr stoneWhiteTex(IMG_LoadTexture(rend, "images/stone_white.png"), SDL_DestroyTexture);
+  TexPtr stoneBlackTex(IMG_LoadTexture(rend, "images/stone_black.png"), SDL_DestroyTexture);
+  SidebarObject stonesObj(std::vector<TexPtr>(6, stoneNoneTex),
                           SIDEBAR_WIDTH, SpacingType::SQUISH_CENTER, 5);
   stonesObj.setVisibility(false);
   sidebar.insertObject(stonesObj, 16, "blackstones");
@@ -623,7 +628,7 @@ int main(int argc, char* argv[])
 
       //Draw board
       SDL_Rect boardDst = {0, 0, BOARD_WIDTH, BOARD_HEIGHT};
-      SDL_RenderCopy(rend, boardTex, NULL, &boardDst);
+      SDL_RenderCopy(rend, boardTex.get(), NULL, &boardDst);
 
       //Draw pieces
       std::list<Position> pieces = board.getPieces(SideType::WHITE);
@@ -733,7 +738,7 @@ int main(int argc, char* argv[])
           srcRec.x *= TILE_SIZE;
           srcRec.y *= TILE_SIZE;
           destRec.w = destRec.h = srcRec.w = srcRec.h = TILE_SIZE;
-          SDL_RenderCopy(rend, pieceTex, &srcRec, &destRec);
+          SDL_RenderCopy(rend, pieceTex.get(), &srcRec, &destRec);
         }
 
       //Draw possible moves
@@ -746,7 +751,7 @@ int main(int argc, char* argv[])
           destRec.x = (i.x()-1) * TILE_SIZE + BORDER_WIDTH;
           destRec.y = (8-i.y()) * TILE_SIZE + BORDER_WIDTH;
           srcRec.w = srcRec.h = destRec.w = destRec.h = TILE_SIZE;
-          SDL_RenderCopy(rend, moveTex, &srcRec, &destRec);
+          SDL_RenderCopy(rend, moveTex.get(), &srcRec, &destRec);
         }
 
       //Draw sidebar
@@ -798,10 +803,6 @@ int main(int argc, char* argv[])
     }
 
   //Clean up
-  SDL_DestroyTexture(boardTex);
-  SDL_DestroyTexture(pieceTex);
-  SDL_DestroyTexture(moveTex);
-  SDL_DestroyTexture(quitTex);
   SDL_DestroyRenderer(rend);
   SDL_DestroyWindow(screen);
   IMG_Quit();

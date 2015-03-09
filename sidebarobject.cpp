@@ -16,7 +16,7 @@ SidebarObject::SidebarObject() :
   visible_(true)
 {}
 
-SidebarObject::SidebarObject(const std::vector<SDL_Texture*>& image,
+SidebarObject::SidebarObject(const std::vector<std::shared_ptr<SDL_Texture> >& image,
                              int sidebarWidth, SpacingType space,
                              int interspace, VertAlignType align) :
   image_(image),
@@ -40,7 +40,7 @@ SidebarObject::SidebarObject(std::size_t n, int sidebarWidth) :
   space_.resize(n, 0);
 }
 
-void SidebarObject::setTexture(std::size_t i, SDL_Texture* t) const
+void SidebarObject::setTexture(std::size_t i, std::shared_ptr<SDL_Texture> t) const
 {
   //Update value
   if (i >= image_.size()) return;
@@ -50,7 +50,7 @@ void SidebarObject::setTexture(std::size_t i, SDL_Texture* t) const
   int texW = 0, texH = 0;
   if (t != nullptr)
     {
-      SDL_QueryTexture(t, NULL, NULL, &texW, &texH);
+      SDL_QueryTexture(t.get(), NULL, NULL, &texW, &texH);
     }
   
   if (texH > height_)
@@ -84,12 +84,12 @@ void SidebarObject::respace(SpacingType space, int interspace) const
 
   //Find the total width of all textures
   int texWidth = 0;
-  for (SDL_Texture* im : image_)
+  for (std::shared_ptr<SDL_Texture> im : image_)
     {
       int texW = 0, texH = 0;
       if (im != nullptr)
         {
-          SDL_QueryTexture(im, NULL, NULL, &texW, &texH);
+          SDL_QueryTexture(im.get(), NULL, NULL, &texW, &texH);
         }
       texWidth += texW;
     }
@@ -145,7 +145,7 @@ void SidebarObject::render(SDL_Renderer* rend, int x, int y) const
       int texW = 0, texH = 0;
       if (image_[i] != nullptr)
         {
-          SDL_QueryTexture(image_[i], NULL, NULL, &texW, &texH);
+          SDL_QueryTexture(image_[i].get(), NULL, NULL, &texW, &texH);
         }
         
       //Set up rectangles
@@ -164,7 +164,7 @@ void SidebarObject::render(SDL_Renderer* rend, int x, int y) const
         }
 
       //Render
-      SDL_RenderCopy(rend, image_[i], &srcRec, &destRec);
+      SDL_RenderCopy(rend, image_[i].get(), &srcRec, &destRec);
 
       //Step down to the next one
       offX += texW;
@@ -191,7 +191,7 @@ SidebarObjectClickResponse SidebarObject::click(int x, int y) const
       int texW = 0, texH = 0;
       if (image_[i] != nullptr)
         {
-          SDL_QueryTexture(image_[i], NULL, NULL, &texW, &texH);
+          SDL_QueryTexture(image_[i].get(), NULL, NULL, &texW, &texH);
         }
         
       //Check if it it the spacing on the left side
@@ -237,12 +237,12 @@ SidebarObjectClickResponse SidebarObject::click(int x, int y) const
 void SidebarObject::computeHeight() const
 {
   height_ = 0;
-  for (SDL_Texture* im : image_)
+  for (std::shared_ptr<SDL_Texture> im : image_)
     {
       int texW = 0, texH = 0;
       if (im != nullptr)
         {
-          SDL_QueryTexture(im, NULL, NULL, &texW, &texH);
+          SDL_QueryTexture(im.get(), NULL, NULL, &texW, &texH);
         }
       height_ = std::max(height_, texH);
     }

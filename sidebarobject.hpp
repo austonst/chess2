@@ -30,6 +30,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
+#include <memory>
 
 //Defines the ways in which textures can be horizontally spaced
 enum class SpacingType : std::uint8_t
@@ -66,7 +67,8 @@ public:
   SidebarObject();
 
   //Sets up the given textures
-  SidebarObject(const std::vector<SDL_Texture*>& image, int sidebarWidth,
+  SidebarObject(const std::vector<std::shared_ptr<SDL_Texture> >& image,
+                int sidebarWidth,
                 SpacingType space = SpacingType::SQUISH_CENTER,
                 int interspace = 0,
                 VertAlignType align = VertAlignType::FLUSH_UP);
@@ -78,8 +80,8 @@ public:
   //Changing a texture without respacing may cause the spacing to be incorrect
   //if the width changes. Only SQUISH_LEFT is guaranteed to stay correct.
   std::size_t size() const {return image_.size();}
-  void setTexture(std::size_t i, SDL_Texture* t) const;
-  SDL_Texture* texture(std::size_t i) const {return image_[i];}
+  void setTexture(std::size_t i, std::shared_ptr<SDL_Texture> t) const;
+  std::shared_ptr<SDL_Texture> texture(std::size_t i) const {return image_[i];}
   void setMaxWidth(int w) const {width_ = w;}
   int maxWidth() const {return width_;}
   int height() const {return height_;}
@@ -112,7 +114,7 @@ public:
     
 private:
   //The images to lay out horizontally
-  mutable std::vector<SDL_Texture*> image_;
+  mutable std::vector<std::shared_ptr<SDL_Texture> > image_;
 
   //The spacing between images. This is the same size as image_ and says
   //how many pixels are left of the corresponding image.
