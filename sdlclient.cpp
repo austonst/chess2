@@ -238,7 +238,18 @@ int main(int argc, char* argv[])
   button->respace();
   button->setVisibility(false);
 
-  //Put other stuff here, like side selection, stones
+  //Create stone tracking objects
+  //Weight of 16 and 17 put them right below state
+  SDL_Texture* stoneNoneTex = IMG_LoadTexture(rend, "images/stone_none.png");
+  SDL_Texture* stoneWhiteTex = IMG_LoadTexture(rend, "images/stone_white.png");
+  SDL_Texture* stoneBlackTex = IMG_LoadTexture(rend, "images/stone_black.png");
+  SidebarObject stonesObj(std::vector<SDL_Texture*>(5, stoneNoneTex),
+                          SIDEBAR_WIDTH, SpacingType::SQUISH_CENTER, 5);
+  stonesObj.setVisibility(false);
+  sidebar.insertObject(stonesObj, 16, "blackstones");
+  sidebar.insertObject(stonesObj, 17, "whitestones");
+
+  //Put other stuff here, like side selection
   //TODO THIS
 
   //Look at args to determine networky stuff and set up game
@@ -467,6 +478,8 @@ int main(int argc, char* argv[])
                   mouseDownClick.sbo->setVisibility(false);
 
                   sidebar.object("state")->setVisibility(true);
+                  sidebar.object("blackstones")->setVisibility(true);
+                  sidebar.object("whitestones")->setVisibility(true);
                 }
             }
           else if (mouseDownClick.sbo->id() == "skipking")
@@ -488,6 +501,7 @@ int main(int argc, char* argv[])
             }
         }
 
+      //Perform any per-frame sidebar updates
       //Update sidebar status depending on state
       Sidebar::iterator statusObject = sidebar.object("state");
       statusObject->setTexture(1, statusTex[num(ng.state())]);
@@ -516,6 +530,24 @@ int main(int argc, char* argv[])
       else
         {
           sidebar.object("skipking")->setVisibility(false);
+        }
+
+      //Update number of stones
+      for (size_t i = 0; i < ng.stones(SideType::WHITE); i++)
+        {
+          sidebar.object(17, "whitestones")->setTexture(i, stoneWhiteTex);
+        }
+      for (size_t i = ng.stones(SideType::WHITE); i < 5; i++)
+        {
+          sidebar.object(17, "whitestones")->setTexture(i, stoneNoneTex);
+        }
+      for (size_t i = 0; i < ng.stones(SideType::BLACK); i++)
+        {
+          sidebar.object(16, "blackstones")->setTexture(i, stoneBlackTex);
+        }
+      for (size_t i = ng.stones(SideType::BLACK); i < 5; i++)
+        {
+          sidebar.object(16, "blackstones")->setTexture(i, stoneNoneTex);
         }
 
       //Depending on game state, we may need to do other things
