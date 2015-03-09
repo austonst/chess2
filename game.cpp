@@ -669,7 +669,26 @@ namespace c2
     _whiteBet = _blackBet = 3;
 
     //Duel starts, begin bidding
+    GameStateType duelState = _state;
     _state = GameStateType::BOTH_BID;
+
+    //If the attacker has no stones, the duel is imediately resolved with
+    //defender spending one stone
+    if (duelState == GameStateType::WHITE_DUEL && _blackStones == 0)
+      {
+        GameReturnType errcheck = bid(SideType::WHITE, 1);
+        if (errcheck != GameReturnType::SUCCESS) return errcheck;
+        errcheck = bid(SideType::BLACK, 0);
+        if (errcheck != GameReturnType::SUCCESS) return errcheck;
+      }
+    else if (duelState == GameStateType::BLACK_DUEL && _whiteStones == 0)
+      {
+        GameReturnType errcheck = bid(SideType::WHITE, 0);
+        if (errcheck != GameReturnType::SUCCESS) return errcheck;
+        errcheck = bid(SideType::BLACK, 1);
+        if (errcheck != GameReturnType::SUCCESS) return errcheck;
+      }
+
     return GameReturnType::SUCCESS;
   }
 
